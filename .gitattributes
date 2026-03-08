@@ -1,0 +1,31 @@
+
+
+# 1. 语言识别
+*.v   linguist-language=Verilog
+*.sv  linguist-language=SystemVerilog
+*.svh linguist-language=SystemVerilog
+*.vhd linguist-language=VHDL
+*.vhdl linguist-language=VHDL
+
+# 2. 二进制文件处理
+*.vcd -text diff
+*.fsdb -text diff
+*.bit -text diff
+*.mcs -text diff
+
+# 3. 换行符统一
+*.v   text eol=lf
+*.sv  text eol=lf
+*.svh text eol=lf
+*.vhd text eol=lf
+*.vhdl text eol=lf
+*.py  text eol=lf
+*.sh  text eol=lf
+Makefile text eol=lf
+*.md  text eol=lf
+*.txt text eol=lf
+
+#4.忽略导出文件
+.gitattributes export-ignore
+.gitignore export-ignore
+.github/ export-ignore
