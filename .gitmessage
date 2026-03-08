@@ -1,0 +1,54 @@
+# RISC-V 项目提交信息规范
+# 类型(范围): 简短描述（不超过50个字符）
+
+# 类型必须是以下之一：
+#   feat:     新功能
+#   fix:      错误修复
+#   docs:     文档更新
+#   style:    代码格式调整
+#   refactor: 重构（不改变功能）
+#   test:     测试相关
+#   chore:    构建过程或辅助工具变更
+#   perf:     性能优化
+#   ci:       持续集成相关
+#   revert:   回滚提交
+#   wip:      工作进行中（临时提交）
+
+# 范围必须是以下之一：
+#   core:        处理器核心
+#   peripheral:  外设模块
+#   verification:验证环境
+#   software:    软件工具链
+#   docs:        文档
+#   ci:          持续集成
+#   build:       构建系统
+#   infra:       基础设施
+#   rtl:         RTL代码
+#   sim:         仿真
+#   synth:       综合
+#   test:        测试
+#   example:     示例代码
+
+# 示例：
+#   feat(core): add RV32IM multiplication support
+#   fix(verification): resolve cache coherency test failure
+#   docs(user): update installation instructions
+#   chore(build): update Makefile dependencies
+#   test(compliance): add RV32I compliance tests
+
+# --- 在下方编写您的提交信息 ---
+# 第一行：类型(范围): 简短描述
+
+# 第二行：空行
+
+# 第三行开始：详细描述
+# 解释为什么进行这个更改，而不是做了什么
+# 每行不超过72个字符
+
+# 最后：相关问题
+# 关闭的问题: Closes #123
+# 相关的PR:   Related to #456
+# 突破性变更: BREAKING CHANGE: 描述变更
+
+# 签名（如果启用了GPG签名）
+# Signed-off-by: Your Name <your.email@example.com>
