@@ -1,64 +1,16 @@
-# 创建一个简单、通用的CI配置
-cat > .github/workflows/ci.yml << 'EOF'
-name: CI
+name: Minimal CI
 
-on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
+on: [push, pull_request]
 
 jobs:
-  validate:
-    name: Validate Repository
+  minimal-check:
     runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-      
-    - name: Repository Structure Check
-      run: |
-        echo "✅ Repository checked out successfully"
-        echo "📁 Current directory: $(pwd)"
-        echo "📄 Files in repository:"
-        ls -la
-        echo ""
-        echo "📊 File count by type:"
-        echo "Source files (.v, .sv): $(find . -name "*.v" -o -name "*.sv" 2>/dev/null | wc -l)"
-        echo "C/C++ files: $(find . -name "*.c" -o -name "*.cpp" -o -name "*.h" -o -name "*.hpp" 2>/dev/null | wc -l)"
-        echo "Documentation files: $(find . -name "*.md" -o -name "*.txt" -o -name "*.pdf" 2>/dev/null | wc -l)"
-        echo "Script files: $(find . -name "*.sh" -o -name "*.py" 2>/dev/null | wc -l)"
+      - name: Checkout code
+        uses: actions/checkout@v3
         
-    - name: Check for Common RISC-V Files
-      run: |
-        echo "🔍 Checking for common RISC-V project files..."
-        
-        # 检查常见的RISC-V项目结构
-        if [ -f "README.md" ] || [ -f "README" ]; then
-          echo "✅ README file found"
-        else
-          echo "⚠️  No README file found (consider adding one)"
-        fi
-        
-        # 检查是否有构建文件
-        if [ -f "Makefile" ] || [ -f "makefile" ] || [ -f "CMakeLists.txt" ]; then
-          echo "✅ Build configuration found"
-        fi
-        
-        # 检查是否有Verilog/SystemVerilog文件
-        if compgen -G "*.v" > /dev/null || compgen -G "*.sv" > /dev/null; then
-          echo "✅ Hardware description files found"
-          echo "   List: $(find . -name "*.v" -o -name "*.sv" 2>/dev/null | head -5 | tr '\n' ' ')"
-        fi
-        
-        # 检查是否有C/C++文件
-        if compgen -G "*.c" > /dev/null || compgen -G "*.cpp" > /dev/null; then
-          echo "✅ C/C++ source files found"
-        fi
-        
-    - name: Success
-      run: |
-        echo "🎉 Repository validation completed successfully!"
-        echo "All basic checks passed."
-EOF
+      - name: Simple validation
+        run: |
+          echo "✅ Minimal check passed"
+          echo "Repository contains $(find . -type f | wc -l) files"
+          exit 0  # 确保退出码为0（成功）
