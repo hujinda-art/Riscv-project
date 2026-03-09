@@ -4,6 +4,7 @@
 *.svh linguist-language=SystemVerilog
 *.vhd linguist-language=VHDL
 *.vhdl linguist-language=VHDL
+
 # 2. 二进制文件处理
 *.vcd -text diff
 *.fsdb -text diff
