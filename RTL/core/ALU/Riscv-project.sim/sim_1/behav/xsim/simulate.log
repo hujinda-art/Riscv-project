@@ -1,0 +1,6 @@
+Time resolution is 1 ps
+
+Total tests: 12
+Errors:      0
+PASS
+$stop called at time : 132 ns : File "F:/Riscv/Riscv-project/Riscv-project.srcs/sim_1/new/ALU_test.v" Line 81

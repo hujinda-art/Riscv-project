@@ -1,0 +1,12 @@
+# compile verilog/system verilog design source files
+verilog xil_defaultlib  --include "../../../../../../vivado/2025.1/Vivado/data/rsb/busdef" \
+"../../../../Riscv-project.srcs/sources_1/new/ALU.v" \
+"../../../../Riscv-project.srcs/sources_1/new/adder.v" \
+"../../../../Riscv-project.srcs/sources_1/new/cla_adder_32bit.v" \
+"../../../../Riscv-project.srcs/sim_1/new/ALU_test.v" \
+
+# compile glbl module
+verilog xil_defaultlib "glbl.v"
+
+# Do not sort compile order
+nosort

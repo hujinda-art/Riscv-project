@@ -1,0 +1,11 @@
+INFO: [VRFC 10-2263] Analyzing Verilog file "F:/Riscv/Riscv-project/Riscv-project.srcs/sources_1/new/ALU.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module adder_32bit
+INFO: [VRFC 10-311] analyzing module ALU
+INFO: [VRFC 10-2263] Analyzing Verilog file "F:/Riscv/Riscv-project/Riscv-project.srcs/sources_1/new/adder.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module adder_4bit
+WARNING: [VRFC 10-9336] redeclaration of ANSI port 'c' is not allowed [F:/Riscv/Riscv-project/Riscv-project.srcs/sources_1/new/adder.v:30]
+INFO: [VRFC 10-2263] Analyzing Verilog file "F:/Riscv/Riscv-project/Riscv-project.srcs/sources_1/new/cla_adder_32bit.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module adder_32bit
+WARNING: [VRFC 10-3609] overwriting previous definition of module 'adder_32bit' [F:/Riscv/Riscv-project/Riscv-project.srcs/sources_1/new/cla_adder_32bit.v:23]
+INFO: [VRFC 10-2263] Analyzing Verilog file "F:/Riscv/Riscv-project/Riscv-project.srcs/sim_1/new/ALU_test.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module tb_ALU
