@@ -1,0 +1,32 @@
+#-----------------------------------------------------------
+# Vivado v2025.1 (64-bit)
+# SW Build 6140274 on Thu May 22 00:12:29 MDT 2025
+# IP Build 6138677 on Thu May 22 03:10:11 MDT 2025
+# SharedData Build 6139179 on Tue May 20 17:58:58 MDT 2025
+# Start of session at: Mon Mar 23 16:41:33 2026
+# Process ID         : 30120
+# Current directory  : F:/Riscv-project/Riscv_cpu
+# Command line       : vivado.exe -gui_launcher_event rodinguilauncherevent6964 F:\Riscv-project\Riscv_cpu\Riscv_cpu.xpr
+# Log file           : F:/Riscv-project/Riscv_cpu/vivado.log
+# Journal file       : F:/Riscv-project/Riscv_cpu\vivado.jou
+# Running On         : LAPTOP-KRMUN1H9
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26200
+# Processor Detail   : Intel(R) Core(TM) i9-14900HX
+# CPU Frequency      : 2419 MHz
+# CPU Physical cores : 24
+# CPU Logical cores  : 32
+# Host memory        : 16774 MB
+# Swap memory        : 19327 MB
+# Total Virtual      : 36101 MB
+# Available Virtual  : 16698 MB
+#-----------------------------------------------------------
+start_gui
+open_project F:/Riscv-project/Riscv_cpu/Riscv_cpu.xpr
+update_compile_order -fileset sources_1
+remove_files  F:/Riscv-project/src/RTL/module/Fetch/IF.v
+remove_files  F:/Riscv-project/src/RTL/module/Fetch/IF.v
+add_files -norecurse -scan_for_includes F:/Riscv-project/src/RTL/module/PC/PC.v
+update_compile_order -fileset sources_1
+add_files -norecurse -scan_for_includes F:/Riscv-project/src/RTL/memory/inst_mem.v
+update_compile_order -fileset sources_1
