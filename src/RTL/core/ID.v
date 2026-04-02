@@ -11,7 +11,6 @@ module ID_stage(
     output wire        use_rs1,
     output wire        use_rs2,
     output wire        is_branch,
-    output wire        is_jump,
     output wire        is_jalr,
     output wire        is_load,
     output wire        is_store,
@@ -34,7 +33,6 @@ module ID_stage(
     localparam [6:0] OPCODE_STORE  = 7'b0100011;
     localparam [6:0] OPCODE_BRANCH = 7'b1100011;
     localparam [6:0] OPCODE_JALR   = 7'b1100111;
-    localparam [6:0] OPCODE_JAL    = 7'b1101111;
     localparam [6:0] OPCODE_LUI    = 7'b0110111;
     localparam [6:0] OPCODE_AUIPC  = 7'b0010111;
 
@@ -51,7 +49,6 @@ module ID_stage(
     assign imm_j = {{11{instr_in[31]}}, instr_in[31], instr_in[19:12], instr_in[20], instr_in[30:21], 1'b0};
 
     assign is_branch = (opcode == OPCODE_BRANCH);
-    assign is_jump   = (opcode == OPCODE_JAL);
     assign is_jalr   = (opcode == OPCODE_JALR);
     assign is_load   = (opcode == OPCODE_LOAD);
     assign is_store  = (opcode == OPCODE_STORE);
@@ -73,14 +70,12 @@ module ID_stage(
                           (opcode == OPCODE_I_TYPE) ||
                           (opcode == OPCODE_LOAD)   ||
                           (opcode == OPCODE_JALR)   ||
-                          (opcode == OPCODE_JAL)    ||
                           (opcode == OPCODE_LUI)    ||
                           (opcode == OPCODE_AUIPC);
 
     // 统一立即数输出，供 EX 阶段选择使用
     assign imm_out = (opcode == OPCODE_STORE)  ? imm_s :
                      (opcode == OPCODE_BRANCH) ? imm_b :
-                     (opcode == OPCODE_JAL)    ? imm_j :
                      (opcode == OPCODE_LUI ||
                       opcode == OPCODE_AUIPC)  ? imm_u :
                                                   imm_i;

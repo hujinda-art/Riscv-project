@@ -5,7 +5,8 @@ module IF_stage (
     input wire rst_n,
     
 
-    input wire stall,         
+    // 仅结构冒险类停顿：冻结 PC 与 IF 输出；JAL 提前跳转用的 IF/ID 单独停顿不要接这里。
+    input wire stall_pc,
     input wire flush, //冲刷IF_ID register     
     
     input wire exception,
@@ -23,22 +24,29 @@ module IF_stage (
     input wire branch,          
     input wire [31:0] pc_branch,
     
-    output wire [31:0] imem_addr,    
-    input wire [31:0] imem_data,     
-    
-    output wire [31:0] pc_current_out,   
-    output wire [31:0] pc_plus_4_out,    
-    output wire [31:0] instr_out,        
-    output wire instr_valid_out          
+    // 本拍取指地址上下文（来自 PC 寄存器），供 IF/ID 锁存；不用于驱动 PC。
+    output wire [31:0] if_pc,
+    output wire [31:0] if_pc_plus4,
+    output wire [31:0] instr_out,
+    output wire        instr_valid_out
 );
-    
+    localparam NOP = 32'h00000013;
+
     wire [31:0] pc_current;
     wire [31:0] pc_plus_4;
     
+    
+    wire [31:0] imem_addr;
+    wire [31:0] imem_data;
+    inst_mem u_inst_mem (
+        .pc_addr(imem_addr),
+        .inst(imem_data)
+    );
+
     PC_unit pc_unit_inst (
         .clk(clk),
         .rst_n(rst_n),
-        .stall(stall),           
+        .stall(stall_pc),
         .exception(exception),
         .pc_exception(pc_exception),
         .interrupt(interrupt),
@@ -49,6 +57,8 @@ module IF_stage (
         .pc_jump(pc_jump),
         .branch(branch),
         .pc_branch(pc_branch),
+        .predict(1'b0),
+        .pc_predict(32'b0),
         .pc_current(pc_current),   
         .pc_plus_4(pc_plus_4)      
     );
@@ -56,11 +66,11 @@ module IF_stage (
     assign imem_addr = pc_current;
     
     
-    wire instr_invalid = (flush || stall);
+    wire instr_invalid = (flush || stall_pc);
     
-    assign instr_out = instr_invalid ? 32'h00000013 : imem_data;
-    assign pc_current_out = pc_current;
-    assign pc_plus_4_out = pc_plus_4;
+    assign instr_out = instr_invalid ? NOP : imem_data;
+    assign if_pc       = pc_current;
+    assign if_pc_plus4 = pc_plus_4;
     assign instr_valid_out = ~instr_invalid;
     
     
