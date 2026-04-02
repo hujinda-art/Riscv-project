@@ -22,8 +22,8 @@ module IF_ID_reg (
     output reg  [31:0] instr_out,
     output reg         instr_valid_out,
     output wire        jump_out,
-    output wire [31:0] pc_jump_out,
-    output wire [31:0] instr_to_id
+    output wire [31:0] pc_jump_out
+    
 );
 
     localparam NOP = 32'h00000013;
@@ -34,42 +34,11 @@ module IF_ID_reg (
     wire        id_jal_taken  = (instr_out[6:0] == OPCODE_JAL);
     wire [31:0] id_jal_target = id_pc + imm_j;
     wire        jal_active    = id_jal_taken & instr_valid_out;
-
-    reg         s_jal_seen;
-    wire        stall_if_id = stall | (jal_active & ~s_jal_seen);
-
-    always @(posedge clk or negedge rst_n) begin
-        if (!rst_n)
-            s_jal_seen <= 1'b0;
-        else if (flush)
-            s_jal_seen <= 1'b0;
-        else
-            s_jal_seen <= jal_active;
-    end
-
+    
     assign jump_out    = jump_ex | jal_active;
     assign pc_jump_out = jump_ex ? pc_jump_ex : id_jal_target;
 
-    reg        id_ex_valid;
-    reg [31:0] id_ex_instr;
-
-    always @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            id_ex_valid <= 1'b0;
-            id_ex_instr <= NOP;
-        end else if (flush) begin
-            id_ex_valid <= 1'b0;
-            id_ex_instr <= NOP;
-        end else if (id_ex_valid) begin
-            id_ex_valid <= 1'b0;
-        end else if (jal_active & ~s_jal_seen) begin
-            id_ex_instr <= instr_out;
-            id_ex_valid <= 1'b1;
-        end
-    end
-
-    assign instr_to_id = id_ex_valid ? id_ex_instr : instr_out;
-
+    
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             id_pc           <= 32'h00000000;
@@ -77,9 +46,11 @@ module IF_ID_reg (
             instr_out       <= NOP;
             instr_valid_out <= 1'b0;
         end else if (flush) begin
+            id_pc           <= 32'h00000000;
+            id_pc_plus4     <= 32'h00000004;
             instr_out       <= NOP;
             instr_valid_out <= 1'b0;
-        end else if (stall_if_id) begin
+        end else if (stall) begin
             id_pc           <= id_pc;
             id_pc_plus4     <= id_pc_plus4;
             instr_out       <= instr_out;

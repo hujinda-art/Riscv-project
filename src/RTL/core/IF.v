@@ -1,5 +1,6 @@
 `timescale 1ns / 1ps
-`include "PC.v"
+`include "../module/PC/PC.v"
+`include "../memory/inst_mem.v"
 module IF_stage (
     input wire clk,
     input wire rst_n,
