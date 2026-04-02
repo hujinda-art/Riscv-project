@@ -3,14 +3,14 @@ module inst_mem #(
     parameter ADDR_WIDTH = 10,
     parameter FILE = "program.hex"    
 )(
-    input wire clk,
     input wire [31:0] pc_addr,      
-    output reg [31:0] inst          
+    output wire [31:0] inst          
 );
 
 
 (*ram_style = "block"*)reg [31:0] mem [0:1023];
 
+wire [ADDR_WIDTH-1:0] word_addr = pc_addr[ADDR_WIDTH+1:2];
 
 initial begin
     if(FILE != "")
@@ -21,9 +21,7 @@ initial begin
     end 
 end
 
-// 同步读取
-always @(posedge clk) begin
-        inst <= mem[pc_addr[11:2]];
-end
+// 组合读：与 IF 阶段同一周期内 imem_addr -> imem_data，便于流水线对齐
+assign inst = mem[word_addr];
 
 endmodule
