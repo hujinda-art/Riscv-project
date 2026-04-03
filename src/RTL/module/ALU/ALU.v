@@ -1,5 +1,5 @@
 `timescale 1ns / 1ps
-`include"cla_adder_32bit.v"
+`include "cla_adder_32bit.v"
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
 // Engineer: 
@@ -26,24 +26,41 @@ module ALU(
     input  [4:0]  op,
     
     output reg [31:0] result,
+    output reg            cout,
     output reg         condition
     );
     
     reg [31:0] logic_result, shift_result, compare_result;
     
-    wire [31:0] arith_result;
+    wire [31:0] arith_result_1;
     wire arith_cin;
     wire [31:0] arith_b;
+    wire cout_ALU;
+    // RISC-V MUL：有符号相乘，取低 32 位
+    wire signed [63:0] mul_full;
+    wire [31:0]        mul_result;
+    assign mul_full   = $signed(a) * $signed(b);
+    assign mul_result = mul_full[31:0];
+    
     assign arith_b = (op == 5'b00000) ? b : ~b;
     assign arith_cin = (op == 5'b00000) ? 1'b0 : 1'b1;
     adder_32bit u_ALU_adder(
         .a(a),
         .b(arith_b),
         .c_in(arith_cin),
-        .result(arith_result),
-        .c_out()   
+        .result(arith_result_1),
+        .c_out(cout_ALU)   
      );
-     
+    
+    always @(*) begin
+        case(op)
+            5'b00000: cout = cout_ALU;
+            5'b00001: cout = ~cout_ALU;
+            5'b00010: cout = 1'b0;
+            default: cout = 1'b0;
+        endcase
+    end
+    
     always @(*) begin
         case (op)
             5'b00100: logic_result = a & b;
@@ -85,8 +102,8 @@ module ALU(
     end
     
     always @(*) begin
-        case(op[4:2])
-            3'b000: result = arith_result;
+        case (op[4:2])
+            3'b000: result = (op == 5'b00010) ? mul_result : arith_result_1;
             3'b001: result = logic_result;
             3'b010: result = shift_result;
             3'b011: result = compare_result;

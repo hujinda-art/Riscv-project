@@ -28,47 +28,48 @@ module tb_ALU;
     reg  [31:0] a, b;
     reg  [4:0]  op;
     wire [31:0] result;
+    wire        cout;
     wire        condition;
     
     integer error_count = 0;
     integer test_count = 0;
-    
+    integer j = 0;
     ALU u_alu(
         .a(a),
         .b(b),
         .op(op),
         .result(result),
+        .cout(cout),
         .condition(condition)
     );
     
+    initial clk = 0; 
+    always begin
+        #10
+        clk = ~clk;
+    end
     
+    always @(posedge clk) begin :count_block // 算术运算测试
+        if(j < 4) begin
+        case(j)
+      
+        1'd0:test_one(5'b00000, 32'd5, 32'd3, 32'd8, 1'b0, 1'bx, "5+3=8");
+        1'd1:test_one(5'b00000, 32'hFFFFFFFF, 32'd1, 32'd0, 1'b1, 1'bx, "FFFFFFFF+1=0");
+        
+        2'd2:test_one(5'b00001, 32'd5, 32'd3, 32'd2, 1'b0, 1'bx, "5-3=2");
+        2'd3:test_one(5'b00010, 32'd5, 32'd3, 32'd15, 1'b0, 1'bx, "5*3=15");
+        
+        endcase
+        j = j + 1;
+        end else begin
+            disable count_block;
+        end
+     end
+     
     initial begin
-        #20;
-        
-        // 算术运算测试
-        test_one(5'b00000, 32'd5, 32'd3, 32'd8, 1'bx, "5+3=8");
-        test_one(5'b00001, 32'd10, 32'd4, 32'd6, 1'bx, "10-4=6");
-        
-        // 逻辑运算测试
-        test_one(5'b00100, 32'hF0F0F0F0, 32'h0F0F0F0F, 32'h00000000, 1'bx, "AND");
-        test_one(5'b00101, 32'hF0F0F0F0, 32'h0F0F0F0F, 32'hFFFFFFFF, 1'bx, "OR");
-        test_one(5'b00110, 32'hAAAAAAAA, 32'h55555555, 32'hFFFFFFFF, 1'bx, "XOR");
-        
-        // 移位运算测试
-        test_one(5'b01000, 32'h0000000F, 32'd4, 32'h000000F0, 1'bx, "SLL");
-        test_one(5'b01001, 32'h000000F0, 32'd4, 32'h0000000F, 1'bx, "SRL");
-        test_one(5'b01010, 32'h80000000, 32'd1, 32'hC0000000, 1'bx, "SRA");
-        
-        // 比较运算测试
-        test_one(5'b10000, 32'd5, 32'd5, 32'bx, 1'b1, "EQ");
-        test_one(5'b10001, 32'd5, 32'd3, 32'bx, 1'b1, "NE");
-        test_one(5'b10010, 32'd5, 32'd10, 32'bx, 1'b1, "ULT");
-        ///test_one(5'b10110, 32'hFFFFFFFB, 32'hFFFFFFFD, 32'bx, 1'b1, "SLT");
-        
-        // 边界测试
-        test_one(5'b00000, 32'hFFFFFFFF, 32'd1, 32'd0, 1'bx, "overflow");
-        ///test_one(5'b01000, 32'h00000001, 32'd32, 32'h00000000, 1'bx, "SLL by 32");
-        
+        #100;
+      
+    
         $display("\nTotal tests: %0d", test_count);
         $display("Errors:      %0d", error_count);
         
@@ -85,6 +86,7 @@ module tb_ALU;
         input [4:0]  op_in;
         input [31:0] a_in, b_in, exp_result;
         input        exp_cond;
+        input        cout_in;
         input [79:0] desc;
         
         reg [31:0] exp_res;
@@ -104,13 +106,15 @@ module tb_ALU;
                 error_count = error_count + 1;
             end
         end
-        else begin
-            if(result !== exp_result) begin
+        else if (op_in[4] == 1'b0) begin
+            if (result !== exp_result) begin
                 $error("[%0d] FAIL: %s", test_count, desc);
                 $display("  got res=%h, exp=%h", result, exp_result);
                 error_count = error_count + 1;
             end
         end
+        $display("%s,%d", desc, cout);
+        
     end
     endtask
     

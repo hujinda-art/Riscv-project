@@ -43,7 +43,22 @@ module core_top (
 
     output wire [31:0] ex_result_out,
     output wire [31:0] ex_mem_addr_out,
-    output wire [31:0] ex_mem_wdata_out
+    output wire [31:0] ex_mem_wdata_out,
+
+    // 指令存储器总线（由 soc_top 连接实际存储器）
+    output wire [31:0] imem_addr,
+    output wire        imem_req,    // 取指请求
+    input  wire [31:0] imem_rdata,
+    input  wire        imem_rvalid, // 指令数据就绪
+
+    // 数据存储器总线（由 soc_top 连接实际存储器）
+    output wire        dmem_wen,
+    output wire        dmem_ren,    // 读使能
+    output wire [1:0]  dmem_size,
+    output wire [31:0] dmem_addr,
+    output wire [31:0] dmem_wdata,
+    input  wire [31:0] dmem_rdata,
+    input  wire        dmem_rvalid  // 读数据就绪
 );
 
     wire [31:0] if_pc_w;
@@ -85,14 +100,24 @@ module core_top (
     wire        ex_mem_wen;
 
     // ---------------------------
-    // 内部 stall/flush 逻辑（stall_only：先实现最小 load-use stall + 控制流 flush）
+    // 内部 stall/flush 逻辑
     // ---------------------------
     wire load_use_hazard;
     wire branch_hazard_ex;
     wire branch_hazard_if;
-    // 前停后放：load-use 时只停 PC/IF_ID，并对 ID/EX 注入 bubble。
-    wire stall_front = stall | load_use_hazard;
-    wire stall_back  = stall;
+
+    // mem_stall：load/store 在 MEM 阶段且总线数据尚未就绪时冻结后半段流水。
+    // 理想存储器（dmem_rvalid 恒 1）时 mem_stall 恒为 0，行为与原版完全一致。
+    wire mem_stall = exmem_mem_read_en_out & ~dmem_rvalid;
+
+    // if_stall：取指总线尚未就绪时冻结 PC 与取指级。
+    // 理想存储器（imem_rvalid 恒 1）时 if_stall 恒为 0。
+    wire if_stall  = ~imem_rvalid;
+
+    // 前段（PC、IF/ID、ID/EX）：任一 stall 来源均冻结
+    wire stall_front = stall | load_use_hazard | mem_stall | if_stall;
+    // 后段（EX/MEM、MEM/WB）：仅外部 stall 与数据总线等待冻结
+    wire stall_back  = stall | mem_stall;
     wire flush_ifid  = flush | branch_hazard_ex | branch_hazard_if;
     wire flush_idex  = flush | branch_hazard_ex | load_use_hazard;
 
@@ -135,6 +160,10 @@ module core_top (
         .pc_branch(ex_pc_branch),
         .if_pc(if_pc_w),
         .if_pc_plus4(if_pc_plus4_w),
+        .imem_addr(imem_addr),
+        .imem_req(imem_req),
+        .imem_rdata(imem_rdata),
+        .imem_rvalid(imem_rvalid),
         .instr_out(if_instr),
         .instr_valid_out(if_instr_valid)
     );
@@ -280,17 +309,20 @@ module core_top (
         .mem_mem_wdata_out(exmem_mem_wdata_out)
     );
 
-    // MEM 阶段：data_mem 读有 1 拍寄存延迟（posedge 更新），并由 MEM/WB_reg 对齐。
+    // 数据总线信号直接从 EX/MEM 寄存器输出驱动，由 soc_top 连接到实际存储器
     wire [1:0] mem_size_fixed = 2'b10; // 默认只支持 word(LW/SW) 子集
+    assign dmem_wen   = exmem_mem_write_en_out;
+    assign dmem_ren   = exmem_mem_read_en_out;
+    assign dmem_size  = mem_size_fixed;
+    assign dmem_addr  = exmem_mem_addr_out;
+    assign dmem_wdata = exmem_mem_wdata_out;
+
     wire [31:0] mem_load_data_real;
 
     MEM_stage u_mem (
         .clk(clk),
         .rst_n(rst_n),
-        .mem_write_en(exmem_mem_write_en_out),
-        .mem_size(mem_size_fixed),
-        .mem_addr(exmem_mem_addr_out),
-        .mem_wdata(exmem_mem_wdata_out),
+        .dmem_rdata_in(dmem_rdata),
         .mem_rdata(mem_load_data_real)
     );
 

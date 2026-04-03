@@ -47,11 +47,13 @@ module EX_stage (
 
     wire [31:0] alu_result;
     wire        alu_cond;
+    wire        alu_cout;
     ALU u_alu (
         .a(alu_a),
         .b(alu_b),
         .op(alu_op),
         .result(alu_result),
+        .cout(alu_cout),
         .condition(alu_cond)
     );
 
@@ -76,7 +78,14 @@ module EX_stage (
             case (ex_opcode)
                 OPCODE_R_TYPE: begin
                     case (ex_fuc3)
-                        3'b000:  alu_op = ex_fun7[5] ? 5'b00001 : 5'b00000; // sub / add
+                        3'b000: begin
+                            if (ex_fun7 == 7'b0100000)
+                                alu_op = 5'b00001; // sub
+                            else if (ex_fun7 == 7'b0000001)
+                                alu_op = 5'b00010; // mul (RV32M)
+                            else
+                                alu_op = 5'b00000; // add
+                        end
                         3'b010:  alu_op = 5'b01100; // slt
                         3'b011:  alu_op = 5'b01101; // sltu
                         3'b001:  alu_op = 5'b01000; // sll

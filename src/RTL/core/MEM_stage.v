@@ -1,24 +1,14 @@
 `timescale 1ns / 1ps
 //
-// MEM 阶段：对接数据存储器 data_mem.v
+// MEM 阶段：数据总线接口占位。
+// 实际存储器已移至 soc_top 层，此处仅将 soc_top 侧读数据透传给 MEM/WB 寄存器。
+// clk/rst_n 保留供后续扩展（cache、MMU 等）使用。
 //
-`include "../memory/data_mem.v"
 module MEM_stage (
     input  wire        clk,
     input  wire        rst_n,
-    input  wire        mem_write_en,
-    input  wire [1:0]  mem_size,
-    input  wire [31:0] mem_addr,
-    input  wire [31:0] mem_wdata,
-    output wire [31:0] mem_rdata
+    input  wire [31:0] dmem_rdata_in,  // 来自 soc_top 侧存储器的读数据
+    output wire [31:0] mem_rdata       // 送往 MEM/WB 寄存器
 );
-    data_mem u_data_mem (
-        .clk(clk),
-        .write_en(mem_write_en),
-        .size(mem_size),
-        .address(mem_addr),
-        .data_in(mem_wdata),
-        .data_out(mem_rdata)
-    );
+    assign mem_rdata = dmem_rdata_in;
 endmodule
-

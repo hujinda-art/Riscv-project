@@ -39,7 +39,7 @@ module tb_core;
     wire [31:0] ex_mem_addr_out;
     wire [31:0] ex_mem_wdata_out;
 
-    core_top dut (
+    soc_top dut (
         .clk(clk),
         .rst_n(rst_n),
         .stall(stall),
@@ -80,11 +80,11 @@ module tb_core;
 
         // regs[] is inside reg_file_bram instance u_regfile
         $display("x1=%h x2=%h x3=%h x4=%h x5=%h",
-                 dut.u_regfile.regs[1],
-                 dut.u_regfile.regs[2],
-                 dut.u_regfile.regs[3],
-                 dut.u_regfile.regs[4],
-                 dut.u_regfile.regs[5]);
+                 dut.u_core.u_regfile.regs[1],
+                 dut.u_core.u_regfile.regs[2],
+                 dut.u_core.u_regfile.regs[3],
+                 dut.u_core.u_regfile.regs[4],
+                 dut.u_core.u_regfile.regs[5]);
 
         $stop;
     end

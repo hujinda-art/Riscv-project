@@ -30,7 +30,7 @@ module tb_core_jump;
     wire [31:0] ex_mem_addr_out;
     wire [31:0] ex_mem_wdata_out;
 
-    core_top dut (
+    soc_top dut (
         .clk(clk),
         .rst_n(rst_n),
         .stall(stall),
@@ -62,37 +62,37 @@ module tb_core_jump;
     always #5 clk = ~clk;
 
     initial begin
-        // 覆盖指令存储器内容，避免依赖外部 program.hex
+        // 延后一拍写 mem，确保 inst_mem initial（全表清 NOP）在 time 0 完成，避免被覆盖
+        #1;
         // 0x00: addi x2, x0, 1
-        dut.u_if.u_inst_mem.mem[0] = 32'h00100113;
+        dut.u_inst_mem.mem[0] = 32'h00100113;
         // 0x04: jal x0, +8  (跳到 0x0C)
-        dut.u_if.u_inst_mem.mem[1] = 32'h0080006F;
+        dut.u_inst_mem.mem[1] = 32'h0080006F;
         // 0x08: addi x3, x0, 7  (应被跳过)
-        dut.u_if.u_inst_mem.mem[2] = 32'h00700193;
+        dut.u_inst_mem.mem[2] = 32'h00700193;
         // 0x0C: addi x4, x0, 9  (应执行)
-        dut.u_if.u_inst_mem.mem[3] = 32'h00900213;
-        // 后续填充 NOP
-        dut.u_if.u_inst_mem.mem[4] = 32'h00000013;
-        dut.u_if.u_inst_mem.mem[5] = 32'h00000013;
-        dut.u_if.u_inst_mem.mem[6] = 32'h00000013;
-        dut.u_if.u_inst_mem.mem[7] = 32'h00000013;
+        dut.u_inst_mem.mem[3] = 32'h00900213;
+        dut.u_inst_mem.mem[4] = 32'h00000013;
+        dut.u_inst_mem.mem[5] = 32'h00000013;
+        dut.u_inst_mem.mem[6] = 32'h00000013;
+        dut.u_inst_mem.mem[7] = 32'h00000013;
 
         #20 rst_n = 1'b1;
 
         repeat (60) @(posedge clk);
 
         $display("x2=%0d x3=%0d x4=%0d",
-                 dut.u_regfile.regs[2],
-                 dut.u_regfile.regs[3],
-                 dut.u_regfile.regs[4]);
+                 dut.u_core.u_regfile.regs[2],
+                 dut.u_core.u_regfile.regs[3],
+                 dut.u_core.u_regfile.regs[4]);
 
-        if (dut.u_regfile.regs[2] !== 32'd1) begin
+        if (dut.u_core.u_regfile.regs[2] !== 32'd1) begin
             $display("FAIL: x2 should be 1");
         end
-        if (dut.u_regfile.regs[3] !== 32'd0) begin
+        if (dut.u_core.u_regfile.regs[3] !== 32'd0) begin
             $display("FAIL: x3 should remain 0 (instruction at 0x08 skipped)");
         end
-        if (dut.u_regfile.regs[4] !== 32'd9) begin
+        if (dut.u_core.u_regfile.regs[4] !== 32'd9) begin
             $display("FAIL: x4 should be 9 (jump target executed)");
         end
 
