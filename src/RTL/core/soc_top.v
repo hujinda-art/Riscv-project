@@ -106,7 +106,8 @@ module soc_top (
         .dmem_rvalid      (dmem_rvalid)
     );
 
-    // 指令存储器（组合读，取指无额外延迟）
+    // 指令存储器：程序已内联在 inst_mem_program.vh（由 inst_mem.v `include），
+    // 综合/上板不依赖 .hex 文件，也无需把 .hex 加入 Vivado 工程。
     inst_mem u_inst_mem (
         .pc_addr (imem_addr),
         .inst    (imem_rdata)

@@ -33,6 +33,7 @@ module ID_stage(
     localparam [6:0] OPCODE_STORE  = 7'b0100011;
     localparam [6:0] OPCODE_BRANCH = 7'b1100011;
     localparam [6:0] OPCODE_JALR   = 7'b1100111;
+    localparam [6:0] OPCODE_JAL    = 7'b1101111;
     localparam [6:0] OPCODE_LUI    = 7'b0110111;
     localparam [6:0] OPCODE_AUIPC  = 7'b0010111;
 
@@ -70,6 +71,7 @@ module ID_stage(
                           (opcode == OPCODE_I_TYPE) ||
                           (opcode == OPCODE_LOAD)   ||
                           (opcode == OPCODE_JALR)   ||
+                          (opcode == OPCODE_JAL)    ||
                           (opcode == OPCODE_LUI)    ||
                           (opcode == OPCODE_AUIPC);
 

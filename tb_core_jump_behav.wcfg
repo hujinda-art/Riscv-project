@@ -3,229 +3,25 @@
    <wave_state>
    </wave_state>
    <db_ref_list>
-      <db_ref path="tb_core_jump_behav.wdb" id="1">
+      <db_ref path="tb_special_features_behav.wdb" id="1">
          <top_modules>
             <top_module name="glbl" />
-            <top_module name="tb_core_jump" />
+            <top_module name="tb_special_features" />
          </top_modules>
       </db_ref>
    </db_ref_list>
    <zoom_setting>
       <ZoomStartTime time="0.000 ns"></ZoomStartTime>
-      <ZoomEndTime time="97.001 ns"></ZoomEndTime>
+      <ZoomEndTime time="112.754 ns"></ZoomEndTime>
       <Cursor1Time time="0.004 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
       <NameColumnWidth column_width="149"></NameColumnWidth>
-      <ValueColumnWidth column_width="129"></ValueColumnWidth>
+      <ValueColumnWidth column_width="123"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="52" />
-   <wvobject fp_name="/tb_core_jump/clk" type="logic">
+   <WVObjectSize size="1" />
+   <wvobject fp_name="/tb_special_features/clk" type="logic">
       <obj_property name="ElementShortName">clk</obj_property>
       <obj_property name="ObjectShortName">clk</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/rst_n" type="logic">
-      <obj_property name="ElementShortName">rst_n</obj_property>
-      <obj_property name="ObjectShortName">rst_n</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/stall" type="logic">
-      <obj_property name="ElementShortName">stall</obj_property>
-      <obj_property name="ObjectShortName">stall</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/flush" type="logic">
-      <obj_property name="ElementShortName">flush</obj_property>
-      <obj_property name="ObjectShortName">flush</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/exception" type="logic">
-      <obj_property name="ElementShortName">exception</obj_property>
-      <obj_property name="ObjectShortName">exception</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/pc_exception" type="array">
-      <obj_property name="ElementShortName">pc_exception[31:0]</obj_property>
-      <obj_property name="ObjectShortName">pc_exception[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/interrupt" type="logic">
-      <obj_property name="ElementShortName">interrupt</obj_property>
-      <obj_property name="ObjectShortName">interrupt</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/pc_interrupt" type="array">
-      <obj_property name="ElementShortName">pc_interrupt[31:0]</obj_property>
-      <obj_property name="ObjectShortName">pc_interrupt[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/id_pc" type="array">
-      <obj_property name="ElementShortName">id_pc[31:0]</obj_property>
-      <obj_property name="ObjectShortName">id_pc[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/id_pc_plus4" type="array">
-      <obj_property name="ElementShortName">id_pc_plus4[31:0]</obj_property>
-      <obj_property name="ObjectShortName">id_pc_plus4[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/instr_out" type="array">
-      <obj_property name="ElementShortName">instr_out[31:0]</obj_property>
-      <obj_property name="ObjectShortName">instr_out[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/instr_valid_out" type="logic">
-      <obj_property name="ElementShortName">instr_valid_out</obj_property>
-      <obj_property name="ObjectShortName">instr_valid_out</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/fun7_out" type="array">
-      <obj_property name="ElementShortName">fun7_out[6:0]</obj_property>
-      <obj_property name="ObjectShortName">fun7_out[6:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/rs2_out" type="array">
-      <obj_property name="ElementShortName">rs2_out[4:0]</obj_property>
-      <obj_property name="ObjectShortName">rs2_out[4:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/rs1_out" type="array">
-      <obj_property name="ElementShortName">rs1_out[4:0]</obj_property>
-      <obj_property name="ObjectShortName">rs1_out[4:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/fuc3_out" type="array">
-      <obj_property name="ElementShortName">fuc3_out[2:0]</obj_property>
-      <obj_property name="ObjectShortName">fuc3_out[2:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/opcode_out" type="array">
-      <obj_property name="ElementShortName">opcode_out[6:0]</obj_property>
-      <obj_property name="ObjectShortName">opcode_out[6:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/rd_out" type="array">
-      <obj_property name="ElementShortName">rd_out[4:0]</obj_property>
-      <obj_property name="ObjectShortName">rd_out[4:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/ex_pc_out" type="array">
-      <obj_property name="ElementShortName">ex_pc_out[31:0]</obj_property>
-      <obj_property name="ObjectShortName">ex_pc_out[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/ex_pc_plus4_out" type="array">
-      <obj_property name="ElementShortName">ex_pc_plus4_out[31:0]</obj_property>
-      <obj_property name="ObjectShortName">ex_pc_plus4_out[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/ex_instr_out" type="array">
-      <obj_property name="ElementShortName">ex_instr_out[31:0]</obj_property>
-      <obj_property name="ObjectShortName">ex_instr_out[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/ex_instr_valid_out" type="logic">
-      <obj_property name="ElementShortName">ex_instr_valid_out</obj_property>
-      <obj_property name="ObjectShortName">ex_instr_valid_out</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/ex_imm_out" type="array">
-      <obj_property name="ElementShortName">ex_imm_out[31:0]</obj_property>
-      <obj_property name="ObjectShortName">ex_imm_out[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/ex_result_out" type="array">
-      <obj_property name="ElementShortName">ex_result_out[31:0]</obj_property>
-      <obj_property name="ObjectShortName">ex_result_out[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/ex_mem_addr_out" type="array">
-      <obj_property name="ElementShortName">ex_mem_addr_out[31:0]</obj_property>
-      <obj_property name="ObjectShortName">ex_mem_addr_out[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/ex_mem_wdata_out" type="array">
-      <obj_property name="ElementShortName">ex_mem_wdata_out[31:0]</obj_property>
-      <obj_property name="ObjectShortName">ex_mem_wdata_out[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/clk" type="logic">
-      <obj_property name="ElementShortName">clk</obj_property>
-      <obj_property name="ObjectShortName">clk</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/rst_n" type="logic">
-      <obj_property name="ElementShortName">rst_n</obj_property>
-      <obj_property name="ObjectShortName">rst_n</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/stall" type="logic">
-      <obj_property name="ElementShortName">stall</obj_property>
-      <obj_property name="ObjectShortName">stall</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/flush" type="logic">
-      <obj_property name="ElementShortName">flush</obj_property>
-      <obj_property name="ObjectShortName">flush</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/exception" type="logic">
-      <obj_property name="ElementShortName">exception</obj_property>
-      <obj_property name="ObjectShortName">exception</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/pc_exception" type="array">
-      <obj_property name="ElementShortName">pc_exception[31:0]</obj_property>
-      <obj_property name="ObjectShortName">pc_exception[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/interrupt" type="logic">
-      <obj_property name="ElementShortName">interrupt</obj_property>
-      <obj_property name="ObjectShortName">interrupt</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/pc_interrupt" type="array">
-      <obj_property name="ElementShortName">pc_interrupt[31:0]</obj_property>
-      <obj_property name="ObjectShortName">pc_interrupt[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/id_pc" type="array">
-      <obj_property name="ElementShortName">id_pc[31:0]</obj_property>
-      <obj_property name="ObjectShortName">id_pc[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/id_pc_plus4" type="array">
-      <obj_property name="ElementShortName">id_pc_plus4[31:0]</obj_property>
-      <obj_property name="ObjectShortName">id_pc_plus4[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/instr_out" type="array">
-      <obj_property name="ElementShortName">instr_out[31:0]</obj_property>
-      <obj_property name="ObjectShortName">instr_out[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/instr_valid_out" type="logic">
-      <obj_property name="ElementShortName">instr_valid_out</obj_property>
-      <obj_property name="ObjectShortName">instr_valid_out</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/fun7_out" type="array">
-      <obj_property name="ElementShortName">fun7_out[6:0]</obj_property>
-      <obj_property name="ObjectShortName">fun7_out[6:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/rs2_out" type="array">
-      <obj_property name="ElementShortName">rs2_out[4:0]</obj_property>
-      <obj_property name="ObjectShortName">rs2_out[4:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/rs1_out" type="array">
-      <obj_property name="ElementShortName">rs1_out[4:0]</obj_property>
-      <obj_property name="ObjectShortName">rs1_out[4:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/fuc3_out" type="array">
-      <obj_property name="ElementShortName">fuc3_out[2:0]</obj_property>
-      <obj_property name="ObjectShortName">fuc3_out[2:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/opcode_out" type="array">
-      <obj_property name="ElementShortName">opcode_out[6:0]</obj_property>
-      <obj_property name="ObjectShortName">opcode_out[6:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/rd_out" type="array">
-      <obj_property name="ElementShortName">rd_out[4:0]</obj_property>
-      <obj_property name="ObjectShortName">rd_out[4:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/ex_pc_out" type="array">
-      <obj_property name="ElementShortName">ex_pc_out[31:0]</obj_property>
-      <obj_property name="ObjectShortName">ex_pc_out[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/ex_pc_plus4_out" type="array">
-      <obj_property name="ElementShortName">ex_pc_plus4_out[31:0]</obj_property>
-      <obj_property name="ObjectShortName">ex_pc_plus4_out[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/ex_instr_out" type="array">
-      <obj_property name="ElementShortName">ex_instr_out[31:0]</obj_property>
-      <obj_property name="ObjectShortName">ex_instr_out[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/ex_instr_valid_out" type="logic">
-      <obj_property name="ElementShortName">ex_instr_valid_out</obj_property>
-      <obj_property name="ObjectShortName">ex_instr_valid_out</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/ex_imm_out" type="array">
-      <obj_property name="ElementShortName">ex_imm_out[31:0]</obj_property>
-      <obj_property name="ObjectShortName">ex_imm_out[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/ex_result_out" type="array">
-      <obj_property name="ElementShortName">ex_result_out[31:0]</obj_property>
-      <obj_property name="ObjectShortName">ex_result_out[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/ex_mem_addr_out" type="array">
-      <obj_property name="ElementShortName">ex_mem_addr_out[31:0]</obj_property>
-      <obj_property name="ObjectShortName">ex_mem_addr_out[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/tb_core_jump/ex_mem_wdata_out" type="array">
-      <obj_property name="ElementShortName">ex_mem_wdata_out[31:0]</obj_property>
-      <obj_property name="ObjectShortName">ex_mem_wdata_out[31:0]</obj_property>
    </wvobject>
 </wave_config>

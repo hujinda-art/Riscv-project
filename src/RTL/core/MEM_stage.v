@@ -7,7 +7,9 @@
 module MEM_stage (
     input  wire        clk,
     input  wire        rst_n,
+
     input  wire [31:0] dmem_rdata_in,  // 来自 soc_top 侧存储器的读数据
+   
     output wire [31:0] mem_rdata       // 送往 MEM/WB 寄存器
 );
     assign mem_rdata = dmem_rdata_in;

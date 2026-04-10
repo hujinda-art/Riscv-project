@@ -1,27 +1,33 @@
-`timescale 1ns /1ps;
+`timescale 1ns / 1ps
+//
+// Instruction memory: combinational read for IF alignment.
+// Image: default is baked in via `include "inst_mem_program.vh" (synthesis-safe, no external .hex).
+// Optional simulation overlay: parameter FILE + $readmemh only when not synthesizing.
+//
 module inst_mem #(
     parameter ADDR_WIDTH = 10,
-    // 空字符串：仿真由 testbench 层次路径写 mem；非空则 $readmemh 加载。
-    parameter FILE = ""
+    parameter FILE       = ""
 )(
-    input wire [31:0] pc_addr,      
-    output wire [31:0] inst          
+    input  wire [31:0] pc_addr,
+    output wire [31:0] inst
 );
 
-
-(*ram_style = "block"*)reg [31:0] mem [0:1023];
+(* ram_style = "distributed" *) reg [31:0] mem [0:((1<<ADDR_WIDTH)-1)];
 
 wire [ADDR_WIDTH-1:0] word_addr = pc_addr[ADDR_WIDTH+1:2];
 
-
+integer i;
 initial begin
-    for(integer i = 0; i < (1<<ADDR_WIDTH); i = i+1)  
-            mem[i] = 32'h00000013;
+    for (i = 0; i < (1 << ADDR_WIDTH); i = i + 1)
+        mem[i] = 32'h00000013;   // NOP
+    // Fixed program (same bits as program.hex words 0..31)
+    `include "inst_mem_program.vh"
+`ifndef SYNTHESIS
     if (FILE != "")
         $readmemh(FILE, mem);
+`endif
 end
 
-// 组合读：与 IF 阶段同一周期内 imem_addr -> imem_data，便于流水线对齐
 assign inst = mem[word_addr];
 
 endmodule

@@ -20,7 +20,7 @@ module ID_EX_reg (
     input  wire [4:0]  rd_in,
     input  wire [31:0] imm_in,
     input  wire        reg_write_en_in,
-    input  wire        use_rs1_in,
+    input  wire        use_rs1_in,//冗余信号，后续不扩展时可以删除
     input  wire        use_rs2_in,
     input  wire        is_branch_in,
     input  wire        is_jalr_in,

@@ -5,7 +5,8 @@
 module WB_stage (
     input  wire        wb_reg_write_en_in,
     input  wire        wb_is_load_in,
-    input  wire [4:0]  wb_rd_in,
+    input  wire [4:0]  wb_rd_in_ex,
+    input  wire [4:0]  wb_rd_in_mem,
     input  wire [31:0] wb_alu_result_in,
     input  wire [31:0] wb_load_data_in,
 
@@ -13,8 +14,9 @@ module WB_stage (
     output wire [4:0]  wb_waddr_out,
     output wire [31:0] wb_wdata_out
 );
-    assign wb_we_out     = wb_reg_write_en_in;
-    assign wb_waddr_out = wb_rd_in;
+
+    assign wb_we_out     = wb_is_load_in ? 1'b1 : wb_reg_write_en_in;
+    assign wb_waddr_out = wb_is_load_in ? wb_rd_in_mem : wb_rd_in_ex;
     assign wb_wdata_out = wb_is_load_in ? wb_load_data_in : wb_alu_result_in;
 endmodule
 

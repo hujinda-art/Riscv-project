@@ -5,10 +5,13 @@
 `include "ID_EX_reg.v"
 `include "EX.v"
 `include "EX_MEM_reg.v"
+`include "EX_WB_reg.v"
 `include "MEM_WB_reg.v"
-`include "MEM_stage.v"
 `include "WB_stage.v"
+`include "../module/register_EX.v"
+`include "../module/register_MEM.v"
 `include "../module/register.v"
+`include "medium_reg.v"
 
 module core_top (
     input  wire        clk,
@@ -132,15 +135,53 @@ module core_top (
     assign branch_hazard_ex = ex_branch_taken | ex_jalr ;
     assign branch_hazard_if = jump_if;
 
+    // IF/ID 提前 JAL：第二写口写 rd <- PC+4（与 WB 写口1 独立，同拍同址时写口2 后执行）
+    localparam [6:0] OPCODE_JAL = 7'b1101111;
+    wire jal_link_we = (instr_out[6:0] == OPCODE_JAL) && instr_valid_out && (id_rd != 5'b0);
+
+    // BRAM 寄存器堆的读操作是 registered（posedge 采样 raddr，下一拍输出 rdata）。
+    // 读地址必须来自 ID 阶段（id_rs1/id_rs2），这样 posedge（ID→EX 转换）时
+    // 采样的是即将进入 EX 的指令的源寄存器，rdata 在 EX 期间立即可用。
+    // 若用 EX 阶段地址（rs1_out/rs2_out），rdata 会晚一拍，
+    // 导致"2 条指令前"的结果无法通过寄存器堆旁路获取。
     reg_file_bram u_regfile (
         .clk(clk),
         .we(wb_we_out),
         .waddr(wb_waddr_out),
         .wdata(wb_wdata_out),
-        .raddr1(rs1_out),
+        .we2(jal_link_we),
+        .waddr2(id_rd),
+        .wdata2(id_pc_plus4),
+        .raddr1(id_rs1),
         .rdata1(rf_rdata1),
-        .raddr2(rs2_out),
+        .raddr2(id_rs2),
         .rdata2(rf_rdata2)
+    );
+
+    wire [4:0] forward_rd_out;
+    wire [31:0] forward_rd_data_out;
+    wire [4:0] rd_reg_load_out;
+    wire [31:0] rd_data_reg_load_out;
+    wire load_lock_out;
+    // flush 只响应真正的流水线冲刷（分支/JALR/全局），不包含 load-use 停顿。
+    // load-use 停顿时 register_EX 需保留 rd_reg_load（目的寄存器），否则前递状态被摧毁。
+    // load_success 直接使用当拍 EX/MEM 的握手信号，避免 register_MEM 的 2 拍延迟
+    // 与 1 拍停顿之间的时序错位。
+    register_EX u_register_ex (
+        .clk(clk),
+        .rst_n(rst_n),
+        .stall(stall_front),
+        .flush(flush | branch_hazard_ex),
+        .load_enable(ex_is_load),
+        .load_success(dmem_rvalid & exmem_mem_read_en_out),
+        .rd_in(rd_out),
+        .rd_ex_result_in(ex_result_out),
+        .rd_mem_rdata_in(dmem_rdata),
+        .rd_out(forward_rd_out),    
+        .rd_data_out(forward_rd_data_out),
+        .rd_reg_load_out(rd_reg_load_out),  
+        .rd_data_reg_load_out(rd_data_reg_load_out),
+        .load_lock_out(load_lock_out)
     );
 
     IF_stage u_if (
@@ -266,8 +307,13 @@ module core_top (
         .ex_is_store(ex_is_store),
         .rs1_data(rf_rdata1),
         .rs2_data(rf_rdata2),
+        .forward_rd_in(forward_rd_out),
+        .forward_rd_data_in(forward_rd_data_out),
+        .forward_rd_reg_load_in(rd_reg_load_out),
+        .forward_rd_data_reg_load_in(rd_data_reg_load_out),
+        .forward_load_lock_in(load_lock_out),
         .ex_result(ex_result_out),
-        .mem_addr(ex_mem_addr_out),
+        .mem_addr_out(ex_mem_addr_out),
         .mem_wdata(ex_mem_wdata_out),
         .mem_read_en(ex_mem_ren),
         .mem_write_en(ex_mem_wen),
@@ -277,6 +323,23 @@ module core_top (
         .pc_jalr(ex_pc_jalr)
     );
 
+    wire [31:0] wb_result_out;
+    wire [4:0]  wb_rd_out_ex;
+    wire        wb_reg_write_en_out;
+    EX_WB_reg u_ex_wb (
+        .clk(clk),
+        .rst_n(rst_n),
+        .stall(stall_back),
+        .flush(flush),
+        .ex_result(ex_result_out),
+        .ex_rd(rd_out),
+        .ex_reg_write_en(ex_reg_write_en),
+        .load_occupation(1'b0),
+        .wb_result(wb_result_out),
+        .wb_rd(wb_rd_out_ex),
+        .wb_reg_write_en(wb_reg_write_en_out)
+    );
+
     // ---------------------------
     // EX/MEM + MEM/WB + 写回（先实现 WB 路径；load 的 MEM 结果后续接上）
     // ---------------------------
@@ -284,7 +347,6 @@ module core_top (
     wire        exmem_mem_write_en_out;
     wire        exmem_reg_write_en_out;
     wire [4:0]  exmem_rd_out;
-    wire [31:0] exmem_alu_result_out;
     wire [31:0] exmem_mem_addr_out;
     wire [31:0] exmem_mem_wdata_out;
 
@@ -292,19 +354,17 @@ module core_top (
         .clk(clk),
         .rst_n(rst_n),
         .stall(stall_back),
-        .flush(1'b0),
+        .flush(flush),
         .ex_mem_read_en_in(ex_mem_ren),
         .ex_mem_write_en_in(ex_mem_wen),
         .ex_reg_write_en_in(ex_reg_write_en),
         .ex_rd_in(rd_out),
-        .ex_alu_result_in(ex_result_out),
         .ex_mem_addr_in(ex_mem_addr_out),
         .ex_mem_wdata_in(ex_mem_wdata_out),
         .mem_mem_read_en_out(exmem_mem_read_en_out),
         .mem_mem_write_en_out(exmem_mem_write_en_out),
         .mem_reg_write_en_out(exmem_reg_write_en_out),
         .mem_rd_out(exmem_rd_out),
-        .mem_alu_result_out(exmem_alu_result_out),
         .mem_mem_addr_out(exmem_mem_addr_out),
         .mem_mem_wdata_out(exmem_mem_wdata_out)
     );
@@ -317,45 +377,32 @@ module core_top (
     assign dmem_addr  = exmem_mem_addr_out;
     assign dmem_wdata = exmem_mem_wdata_out;
 
-    wire [31:0] mem_load_data_real;
+    // 访存数据由 soc_top 直连返回；MEM_stage 占位模块可省略。
+    wire [31:0] mem_load_data_stub = exmem_mem_read_en_out ? dmem_rdata : 32'b0;
 
-    MEM_stage u_mem (
-        .clk(clk),
-        .rst_n(rst_n),
-        .dmem_rdata_in(dmem_rdata),
-        .mem_rdata(mem_load_data_real)
-    );
-
-    wire [31:0] mem_load_data_stub = exmem_mem_read_en_out ? mem_load_data_real : 32'b0;
-
-    wire        wb_reg_write_en_out;
     wire        wb_is_load_out;
-    wire [4:0]  wb_rd_out;
-    wire [31:0] wb_alu_result_out;
+    wire [4:0]  wb_rd_out_mem;
     wire [31:0] wb_load_data_out;
 
     MEM_WB_reg u_memwb (
         .clk(clk),
         .rst_n(rst_n),
         .stall(stall_back),
-        .flush(1'b0),
-        .mem_reg_write_en_in(exmem_reg_write_en_out),
+        .flush(flush),
         .mem_is_load_in(exmem_mem_read_en_out),
         .mem_rd_in(exmem_rd_out),
-        .mem_alu_result_in(exmem_alu_result_out),
         .mem_load_data_in(mem_load_data_stub),
-        .wb_reg_write_en_out(wb_reg_write_en_out),
         .wb_is_load_out(wb_is_load_out),
-        .wb_rd_out(wb_rd_out),
-        .wb_alu_result_out(wb_alu_result_out),
+        .wb_rd_out(wb_rd_out_mem),
         .wb_load_data_out(wb_load_data_out)
     );
 
     WB_stage u_wb (
         .wb_reg_write_en_in(wb_reg_write_en_out),
         .wb_is_load_in(wb_is_load_out),
-        .wb_rd_in(wb_rd_out),
-        .wb_alu_result_in(wb_alu_result_out),
+        .wb_rd_in_ex(wb_rd_out_ex),
+        .wb_rd_in_mem(wb_rd_out_mem),
+        .wb_alu_result_in(wb_result_out),
         .wb_load_data_in(wb_load_data_out),
         .wb_we_out(wb_we_out),
         .wb_waddr_out(wb_waddr_out),
