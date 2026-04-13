@@ -31,7 +31,7 @@ module IF_stage (
     output wire [31:0] imem_addr,   // 取指地址，等于 pc_current
     output wire        imem_req,    // 取指请求有效（非停顿时为 1）
     input  wire [31:0] imem_rdata,  // 来自外部存储器的指令数据
-    input  wire        imem_rvalid, // 存储器侧数据就绪（理想存储器恒为 1）
+    input  wire        imem_ready,  // 存储器侧数据就绪（握手 ready）
 
     output wire [31:0] instr_out,
     output wire        instr_valid_out
@@ -69,7 +69,7 @@ module IF_stage (
     assign instr_out       = instr_invalid ? NOP : imem_rdata;
     assign if_pc           = pc_current;
     assign if_pc_plus4     = pc_plus_4;
-    // imem_rvalid=0 时指令无效（对理想存储器恒为 1，行为不变）
-    assign instr_valid_out = ~instr_invalid & imem_rvalid;
+    // imem_ready=0 时指令无效。
+    assign instr_valid_out = ~instr_invalid & imem_ready;
 
 endmodule

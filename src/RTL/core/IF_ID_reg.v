@@ -11,8 +11,6 @@ module IF_ID_reg (
     input  wire        rst_n,
     input  wire        stall,
     input  wire        flush,
-    input  wire        jump_ex,
-    input  wire [31:0] pc_jump_ex,
     input  wire [31:0] if_pc,
     input  wire [31:0] if_pc_plus4,
     input  wire [31:0] instr_in,
@@ -20,23 +18,11 @@ module IF_ID_reg (
     output reg  [31:0] id_pc,
     output reg  [31:0] id_pc_plus4,
     output reg  [31:0] instr_out,
-    output reg         instr_valid_out,
-    output wire        jump_out,
-    output wire [31:0] pc_jump_out
+    output reg         instr_valid_out
     
 );
 
     localparam NOP = 32'h00000013;
-    localparam [6:0] OPCODE_JAL = 7'b1101111;
-
-    wire [31:0] imm_j = {{11{instr_out[31]}}, instr_out[31], instr_out[19:12],
-                          instr_out[20], instr_out[30:21], 1'b0};
-    wire        id_jal_taken  = (instr_out[6:0] == OPCODE_JAL);
-    wire [31:0] id_jal_target = id_pc + imm_j;
-    wire        jal_active    = id_jal_taken & instr_valid_out;
-    
-    assign jump_out    = jump_ex | jal_active;
-    assign pc_jump_out = jump_ex ? pc_jump_ex : id_jal_target;
 
     
     always @(posedge clk or negedge rst_n) begin

@@ -23,6 +23,8 @@ module EX_stage (
     input  wire [31:0] rs2_data,
     input  wire [4:0]  forward_rd_in,
     input  wire [31:0] forward_rd_data_in,
+    input  wire [4:0]  forward_rd_in2,
+    input  wire [31:0] forward_rd_data_in2,
     input  wire        forward_load_lock_in,
     input  wire [4:0]  forward_rd_reg_load_in,
     input  wire [31:0] forward_rd_data_reg_load_in,
@@ -139,12 +141,16 @@ module EX_stage (
             forward_rd_data_reg_load_in :
         ((forward_rd_in != 5'b0) && (forward_rd_in == ex_rs1)) ?
             forward_rd_data_in :
+        ((forward_rd_in2 != 5'b0) && (forward_rd_in2 == ex_rs1)) ?
+            forward_rd_data_in2 :
             rs1_data;
     assign rs2_data_final =
         (!forward_load_lock_in && (forward_rd_reg_load_in != 5'b0) && (forward_rd_reg_load_in == ex_rs2)) ?
             forward_rd_data_reg_load_in :
         ((forward_rd_in != 5'b0) && (forward_rd_in == ex_rs2)) ?
             forward_rd_data_in :
+        ((forward_rd_in2 != 5'b0) && (forward_rd_in2 == ex_rs2)) ?
+            forward_rd_data_in2 :
             rs2_data;
     assign alu_a = rs1_data_final;
     assign alu_b = (ex_opcode == OPCODE_R_TYPE || ex_is_branch) ? rs2_data_final : ex_imm;

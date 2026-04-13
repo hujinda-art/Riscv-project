@@ -11,6 +11,7 @@ module ID_stage(
     output wire        use_rs1,
     output wire        use_rs2,
     output wire        is_branch,
+    output wire        is_jump,
     output wire        is_jalr,
     output wire        is_load,
     output wire        is_store,
@@ -50,11 +51,11 @@ module ID_stage(
     assign imm_j = {{11{instr_in[31]}}, instr_in[31], instr_in[19:12], instr_in[20], instr_in[30:21], 1'b0};
 
     assign is_branch = (opcode == OPCODE_BRANCH);
+    assign is_jump   = (opcode == OPCODE_JAL);
     assign is_jalr   = (opcode == OPCODE_JALR);
     assign is_load   = (opcode == OPCODE_LOAD);
     assign is_store  = (opcode == OPCODE_STORE);
 
-    
     assign use_rs1 = (opcode == OPCODE_R_TYPE) ||
                      (opcode == OPCODE_I_TYPE) ||
                      (opcode == OPCODE_LOAD)   ||
@@ -78,6 +79,7 @@ module ID_stage(
     // 统一立即数输出，供 EX 阶段选择使用
     assign imm_out = (opcode == OPCODE_STORE)  ? imm_s :
                      (opcode == OPCODE_BRANCH) ? imm_b :
+                     (opcode == OPCODE_JAL)    ? imm_j :
                      (opcode == OPCODE_LUI ||
                       opcode == OPCODE_AUIPC)  ? imm_u :
                                                   imm_i;

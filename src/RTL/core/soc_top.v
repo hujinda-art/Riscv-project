@@ -1,4 +1,6 @@
 `timescale 1ns / 1ps
+`include "../include/soc_config.vh"
+`include "../include/soc_addr_map.vh"
 //
 // SoC 顶层集成壳：CPU 核 + 指令存储器 + 数据存储器。
 // 此文件为 SoC 边界，后续可将存储器替换为 AXI Master 适配器。
@@ -46,23 +48,20 @@ module soc_top (
     wire [31:0] imem_addr;
     wire        imem_req;
     wire [31:0] imem_rdata;
-    wire        imem_rvalid;
+    wire        imem_ready;
 
     // ---- 数据总线 ----
     wire        dmem_wen;
     wire        dmem_ren;
+    wire        dmem_valid;
     wire [1:0]  dmem_size;
     wire [31:0] dmem_addr;
     wire [31:0] dmem_wdata;
     wire [31:0] dmem_rdata;
-    wire        dmem_rvalid;
+    wire        dmem_ready;
 
     // ---- 理想存储器桥接 ----
-    // inst_mem 为组合读，同拍返回，rvalid 恒为 1
-    assign imem_rvalid = 1'b1;
-    // data_mem 为同步读，1 拍延迟已由 MEM/WB 级间寄存器对齐吸收，
-    // 理想桥接下 rvalid 恒为 1（Phase 3 慢速桥接时此处改为带延迟的状态机）
-    assign dmem_rvalid = 1'b1;
+    // imem/dmem 都走 req/ready 握手，ready 由各自存储器模块输出。
 
     core_top u_core (
         .clk              (clk),
@@ -95,32 +94,39 @@ module soc_top (
         .imem_addr        (imem_addr),
         .imem_req         (imem_req),
         .imem_rdata       (imem_rdata),
-        .imem_rvalid      (imem_rvalid),
+        .imem_ready       (imem_ready),
         // 数据总线
         .dmem_wen         (dmem_wen),
         .dmem_ren         (dmem_ren),
+        .dmem_valid       (dmem_valid),
         .dmem_size        (dmem_size),
         .dmem_addr        (dmem_addr),
         .dmem_wdata       (dmem_wdata),
         .dmem_rdata       (dmem_rdata),
-        .dmem_rvalid      (dmem_rvalid)
+        .dmem_ready       (dmem_ready)
     );
 
     // 指令存储器：程序已内联在 inst_mem_program.vh（由 inst_mem.v `include），
     // 综合/上板不依赖 .hex 文件，也无需把 .hex 加入 Vivado 工程。
     inst_mem u_inst_mem (
+        .clk     (clk),
+        .req     (imem_req),
         .pc_addr (imem_addr),
-        .inst    (imem_rdata)
+        .inst    (imem_rdata),
+        .ready   (imem_ready)
     );
 
     // 数据存储器（同步读，1 拍延迟由 MEM/WB 级间寄存器对齐）
     data_mem u_data_mem (
         .clk      (clk),
+        .valid    (dmem_valid),
+        .read_en  (dmem_ren),
         .write_en (dmem_wen),
         .size     (dmem_size),
         .address  (dmem_addr),
         .data_in  (dmem_wdata),
-        .data_out (dmem_rdata)
+        .data_out (dmem_rdata),
+        .ready    (dmem_ready)
     );
 
 endmodule
