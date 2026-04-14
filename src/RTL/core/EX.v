@@ -72,14 +72,14 @@ module EX_stage (
     );
 
     assign instr_valid_final = ex_instr_valid & 
-    !(forward_load_lock_in & (ex_is_load || ex_is_store));
+    !(forward_load_lock_in & (ex_is_load || ex_is_store));//防止load/store冒险
     assign ex_stall_out = !instr_valid_final;
     assign ex_reg_write_en = instr_valid_final &
         ((ex_opcode == OPCODE_R_TYPE) || (ex_opcode == OPCODE_I_TYPE) ||
          (ex_opcode == OPCODE_JALR)   || (ex_opcode == OPCODE_LUI)   ||
-         (ex_opcode == OPCODE_AUIPC));
+         (ex_opcode == OPCODE_AUIPC));//可以写回寄存器的指令类型
 
-    // 分支比较：fun3 -> ALU 条件类 op（与 ALU.v 中 encoding 一致）
+    // 分支比较：fun3 -> ALU 条件类 op
     reg [4:0] branch_alu_op;
     always @(*) begin
         case (ex_fuc3)
@@ -136,6 +136,7 @@ module EX_stage (
         end
     end
 
+// 数据前推
     assign rs1_data_final =
         (!forward_load_lock_in && (forward_rd_reg_load_in != 5'b0) && (forward_rd_reg_load_in == ex_rs1)) ?
             forward_rd_data_reg_load_in :

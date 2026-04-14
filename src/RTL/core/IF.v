@@ -62,7 +62,9 @@ module IF_stage (
     );
 
     assign imem_addr = pc_current;
-    assign imem_req  = ~stall_pc;   // 未停顿时持续请求新指令
+    // req 不能受 if_stall（即 ~imem_ready）门控，否则形成死锁。
+    // 只有非取指类 stall（load-use / mem_stall / 外部 stall）才暂停请求。
+    assign imem_req  = 1'b1;
 
     wire instr_invalid = (flush || stall_pc);
 

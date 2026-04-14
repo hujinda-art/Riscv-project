@@ -48,6 +48,9 @@ module hazard_ctrl (
     assign stall_front = stall | load_use_hazard | mem_stall | if_stall;
     assign stall_back  = stall | mem_stall;
     assign flush_ifid  = flush | branch_hazard_ex | branch_hazard_if;
-    assign flush_idex  = flush | branch_hazard_ex | load_use_hazard;
+    // JAL 在 ID 阶段已重定向 PC；需对 ID/EX 注入气泡，但不能在 mem_stall 时冲刷
+    // （此时 ID_EX 可能正 hold 上一条访存指令，flush 优先于 stall 会误清有效 store）。
+    assign flush_idex  = flush | branch_hazard_ex | load_use_hazard
+                        | (branch_hazard_if & ~stall_back);
 
 endmodule

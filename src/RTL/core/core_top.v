@@ -78,8 +78,6 @@ module core_top (
     wire [31:0] pc_jump_ifid_unused;
     wire [31:0] instr_to_id;
 
-    localparam [31:0] NOP = 32'h00000013;
-
     wire [6:0]  id_fun7;
     wire [4:0]  id_rs2, id_rs1, id_rd;
     wire [2:0]  id_fuc3;
@@ -260,18 +258,25 @@ module core_top (
         .is_store(id_is_store),
         .reg_write_en(id_reg_we)
     );
-
+    reg flush_idex_reg;
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            flush_idex_reg <= 1'b0; 
+        end else begin
+            flush_idex_reg <= flush_idex;
+        end
+    end
     ID_EX_reg u_id_ex (
         .clk(clk),
         .rst_n(rst_n),
         .stall(stall_back),
-        .flush(flush_idex),
+        .flush(flush_idex_reg),
         .id_pc_in(id_pc),
         .id_pc_plus4_in(id_pc_plus4),
-        // 在进入 EX 前把 JAL 清成气泡：PC 已在 IF/ID 阶段提前重定向，
-        // 因而不再让 JAL 指令进入 ID/EX->EX 的执行/访存通路。
-        .instr_in(jump_if ? NOP : instr_out),
-        .instr_valid_in(jump_if ? 1'b0 : instr_valid_out),
+        // JAL 气泡由 hazard_ctrl 的 flush_idex（含 branch_hazard_if & ~stall_back）统一注入，
+        // 避免 jump_if 与 stall_back 不同步时误把 hold 中的 store 清成 NOP。
+        .instr_in(instr_out),
+        .instr_valid_in(instr_valid_out),
         .fun7_in(id_fun7),
         .rs1_in(id_rs1),
         .rs2_in(id_rs2),
@@ -279,7 +284,7 @@ module core_top (
         .opcode_in(id_opcode),
         .rd_in(id_rd),
         .imm_in(id_imm),
-        .reg_write_en_in(jump_if ? 1'b0 : id_reg_we),
+        .reg_write_en_in(id_reg_we),
         .use_rs1_in(id_use_rs1),
         .use_rs2_in(id_use_rs2),
         .is_branch_in(id_is_branch),
