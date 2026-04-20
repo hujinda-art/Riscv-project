@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------------
 // Instruction ROM image — generated from scripts/sw/build/full_instr.hex
-// (full_instr_test.c + startup.S, -march=rv32im -mabi=ilp32 -O2)
+// (full_instr_test.c + startup.S；默认 -march=rv32i -mabi=ilp32 -O2，见 scripts/sw/Makefile)
 // Keep in sync with full_instr.hex: run `make` in scripts/sw/ then update.
 // Vivado synthesis: no .hex file needed; this fragment is `included by RTL.
 // ---------------------------------------------------------------------------

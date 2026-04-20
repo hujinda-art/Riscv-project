@@ -24,8 +24,17 @@
 `define SOC_MEM_WORD_INDEX_LSB  2
 
 // ---- Cache 参数配置 ----
-`define CACHE_BLOCK_BYTE_SIZE 4
-`define CACHE_BLOCK_NUMBER 8
-`define CACHE_BLOCK_BYTE_LINE 2
+`define CACHE_BLOCK_BYTE_SIZE_WIDTH 4 //(1 << 4) = 16字节=128位
+`define CACHE_BLOCK_NUMBER 4 //2^4=16个组
+`define CACHE_BLOCK_WAY_NUMBER 2 //2^2=4个路
 `define CACHE_BLOCK_TAG_BYTE_WIDTH 25
 `endif // SOC_CONFIG_VH
+
+//数据位宽
+`define DATA_SIZE 32
+
+//指令位宽
+`define INSTR_SIZE 32
+
+//地址位宽
+`define MEM_ADDR_WIDTH 32

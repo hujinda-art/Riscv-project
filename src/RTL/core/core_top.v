@@ -258,14 +258,7 @@ module core_top (
         .is_store(id_is_store),
         .reg_write_en(id_reg_we)
     );
-    reg flush_idex_reg;
-    always @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            flush_idex_reg <= 1'b0; 
-        end else begin
-            flush_idex_reg <= flush_idex;
-        end
-    end
+
     ID_EX_reg u_id_ex (
         .clk(clk),
         .rst_n(rst_n),
