@@ -39,7 +39,7 @@ module tb_core;
     wire [31:0] ex_mem_addr_out;
     wire [31:0] ex_mem_wdata_out;
 
-    soc_top dut (
+    soc_top_bram dut (
         .clk(clk),
         .rst_n(rst_n),
         .stall(stall),

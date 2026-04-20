@@ -51,7 +51,7 @@ module tb_special_features;
     wire        ex_instr_valid_out;
     wire [31:0] ex_result_out, ex_mem_addr_out, ex_mem_wdata_out;
 
-    soc_top dut (
+    soc_top_bram dut (
         .clk(clk), .rst_n(rst_n),
         .stall(stall), .flush(flush),
         .exception(exception), .pc_exception(pc_exception),

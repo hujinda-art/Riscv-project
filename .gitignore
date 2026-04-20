@@ -3,3 +3,43 @@ scripts/git/push_diagnose.ps1
 question.md
 markdown/
 scripts/sw/build/
+
+# --- Vivado / 生成物与缓存（协作时勿提交；以 soc.bd + ip/*.xci 为源）---
+*.cache/
+*.hw/
+*.ip_user_files/
+*.runs/
+*.tmp/
+*.jou
+*.log
+*.str
+webtalk*.jou
+webtalk*.log
+xelab.pb
+xsim.dir/
+*.wdb
+*.bit
+
+# --- src/bd：Block Design 与 IP 生成物（应提交：*.bd、各 ip/<name>/<name>.xci；其余多为可再生成）---
+src/bd/**/synth/
+src/bd/**/sim/
+src/bd/**/hw_handoff/
+src/bd/**/ipshared/
+# SmartConnect 等展开产生的大量子 IP
+src/bd/**/ip/**/bd_0/
+src/bd/**/ip/**/sim/
+src/bd/**/ip/**/synth/
+src/bd/**/ip/**/xtlm/
+src/bd/**/ip/**/*_sim_netlist.*
+src/bd/**/ip/**/*.dcp
+src/bd/**/ip/**/*_stub.v
+src/bd/**/ip/**/*_stub.vhd
+src/bd/**/ip/**/*_stub.sv
+src/bd/**/*.protoinst
+src/bd/**/*.bxml
+# BD 画布 UI 缓存（可选；不提交则每人打开 BD 布局可能不同）
+src/bd/**/ui/
+# 若希望 hdl（soc_wrapper 等）也仅本地生成，取消下一行注释（需团队统一）
+# src/bd/**/hdl/
+
+scripts/branch_model/

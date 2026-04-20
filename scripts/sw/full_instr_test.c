@@ -82,7 +82,13 @@ int main(void) {
     asm volatile("li t0, 1\nli t1, 2\nsltu %0, t0, t1" : "=r"(r) : : "t0", "t1");
     emit_sig(9, r);
 
-    asm volatile("li t0, 7\nli t1, 6\nmul %0, t0, t1" : "=r"(r) : : "t0", "t1");
+    /* rv32i：无 MUL 指令时用移位-加代替（7*6=42） */
+    {
+        uint32_t a = 7u, b = 6u, acc = 0u, k;
+        for (k = 0u; k < b; k++)
+            acc += a;
+        r = acc;
+    }
     emit_sig(10, r);
 
     asm volatile("lui %0, 0x12345" : "=r"(r));

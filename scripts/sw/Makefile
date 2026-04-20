@@ -1,11 +1,14 @@
+# 裸机嵌入式前缀 → riscv64-unknown-elf-gcc；勿与 riscv64-unknown-linux-gnu- 混用
 CROSS ?= riscv64-unknown-elf
 CC := $(CROSS)-gcc
 OBJCOPY := $(CROSS)-objcopy
 OBJDUMP := $(CROSS)-objdump
 PYTHON ?= python3
 
-CFLAGS := -march=rv32im -mabi=ilp32 -O2 -ffreestanding -fno-builtin -nostdlib -nostartfiles -Wall -Wextra
-LDFLAGS := -T link.ld -nostdlib -nostartfiles -Wl,--gc-sections
+# 当前 RTL 未实现 M/C 时保持 rv32i；实现 M 后改为 rv32im：make RV_MARCH=rv32im
+RV_MARCH ?= rv32i
+CFLAGS := -march=$(RV_MARCH) -mabi=ilp32 -O2 -ffreestanding -fno-builtin -nostdlib -nostartfiles -Wall -Wextra
+LDFLAGS := -T link.ld -nostdlib -nostartfiles -Wl,--gc-sections -lgcc
 
 BUILD_DIR := build
 ELF := $(BUILD_DIR)/full_instr.elf
@@ -76,6 +79,7 @@ help:
 	@echo "  make mem      — 仅 tb_mem.hex（LW/SW）"
 	@echo "  make clean    — 删除 build/"
 	@echo "交叉编译前缀: CROSS=$(CROSS)  （例: make tb CROSS=riscv64-unknown-elf）"
+	@echo "ISA: RV_MARCH=$(RV_MARCH)  （实现 M 扩展后: make RV_MARCH=rv32im）"
 
 clean:
 	rm -rf $(BUILD_DIR)
