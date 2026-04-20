@@ -43,3 +43,4 @@ src/bd/**/ui/
 # src/bd/**/hdl/
 
 scripts/branch_model/
+*.rpt
