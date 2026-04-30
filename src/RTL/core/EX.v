@@ -23,20 +23,17 @@ module EX_stage (
     input  wire [31:0] rs2_data,
     input  wire [4:0]  forward_rd_in,
     input  wire [31:0] forward_rd_data_in,
-    input  wire [4:0]  forward_rd_in2,
-    input  wire [31:0] forward_rd_data_in2,
     input  wire        forward_load_lock_in,
+    input  wire        forward_store_lock_in,
     input  wire [4:0]  forward_rd_reg_load_in,
     input  wire [31:0] forward_rd_data_reg_load_in,
     
     output wire [31:0] mem_addr_out,
     output wire [31:0] ex_result,
-    output wire [31:0] mem_addr,
     output wire [31:0] mem_wdata,
     output wire        ex_reg_write_en,
     output wire        mem_read_en,
     output wire        mem_write_en,
-    output wire        ex_stall_out,
     output wire        branch_taken,
     output wire [31:0] pc_branch,
     output wire        jalr,
@@ -71,13 +68,13 @@ module EX_stage (
         .condition(alu_cond)
     );
 
-    assign instr_valid_final = ex_instr_valid & 
-    !(forward_load_lock_in & (ex_is_load || ex_is_store));//防止load/store冒险
-    assign ex_stall_out = !instr_valid_final;
+    // store_lock 仅挡 store；load 冲突由 register_EX 的 mem_stall 机制停顿。
+    wire mem_req_block = (forward_store_lock_in & ex_is_store);
+    assign instr_valid_final = ex_instr_valid & ~mem_req_block;
     assign ex_reg_write_en = instr_valid_final &
         ((ex_opcode == OPCODE_R_TYPE) || (ex_opcode == OPCODE_I_TYPE) ||
          (ex_opcode == OPCODE_JALR)   || (ex_opcode == OPCODE_LUI)   ||
-         (ex_opcode == OPCODE_AUIPC));//可以写回寄存器的指令类型
+         (ex_opcode == OPCODE_AUIPC));
 
     // 分支比较：fun3 -> ALU 条件类 op
     reg [4:0] branch_alu_op;
@@ -136,22 +133,18 @@ module EX_stage (
         end
     end
 
-// 数据前推
+// 数据前推 (Bug 18: load 锁存前递提升到最高优先级)
     assign rs1_data_final =
-        (!forward_load_lock_in && (forward_rd_reg_load_in != 5'b0) && (forward_rd_reg_load_in == ex_rs1)) ?
+        ((forward_load_lock_in) && (forward_rd_reg_load_in != 5'b0) && (forward_rd_reg_load_in == ex_rs1)) ?
             forward_rd_data_reg_load_in :
         ((forward_rd_in != 5'b0) && (forward_rd_in == ex_rs1)) ?
             forward_rd_data_in :
-        ((forward_rd_in2 != 5'b0) && (forward_rd_in2 == ex_rs1)) ?
-            forward_rd_data_in2 :
             rs1_data;
     assign rs2_data_final =
-        (!forward_load_lock_in && (forward_rd_reg_load_in != 5'b0) && (forward_rd_reg_load_in == ex_rs2)) ?
+        ((forward_load_lock_in) && (forward_rd_reg_load_in != 5'b0) && (forward_rd_reg_load_in == ex_rs2)) ?
             forward_rd_data_reg_load_in :
         ((forward_rd_in != 5'b0) && (forward_rd_in == ex_rs2)) ?
             forward_rd_data_in :
-        ((forward_rd_in2 != 5'b0) && (forward_rd_in2 == ex_rs2)) ?
-            forward_rd_data_in2 :
             rs2_data;
     assign alu_a = rs1_data_final;
     assign alu_b = (ex_opcode == OPCODE_R_TYPE || ex_is_branch) ? rs2_data_final : ex_imm;
@@ -162,6 +155,7 @@ module EX_stage (
     assign branch_taken = instr_valid_final & ex_is_branch & alu_cond;
     assign jalr         = instr_valid_final & ex_is_jalr;
 
+    wire [31:0] mem_addr;
     assign mem_addr     = rs1_data_final + ex_imm;
     assign mem_wdata    = rs2_data_final;
     assign mem_read_en  = instr_valid_final & ex_is_load;
