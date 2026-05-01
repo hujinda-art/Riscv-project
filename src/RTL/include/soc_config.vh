@@ -24,9 +24,11 @@
 `define SOC_MEM_WORD_INDEX_LSB  2
 
 // ---- Cache 参数配置 ----
-`define CACHE_BLOCK_BYTE_SIZE_WIDTH 4 //(1 << 4) = 16字节=128位
-`define CACHE_BLOCK_NUMBER 4 //2^4=16个组
-`define CACHE_BLOCK_WAY_NUMBER 2 //2^2=4个路
+// CACHE_BLOCK_BYTE_SIZE_WIDTH：log2(块字节数)，块大小 = 2^W 字节
+`define CACHE_BLOCK_BYTE_SIZE_WIDTH 4 // 16 字节 / 行
+// 以下两项为「索引/路选」**位宽**，不是十进制组数/路数：组数=2^Wset，路数=2^Wway
+`define CACHE_BLOCK_NUMBER 4 // 组索引 4 位 → 16 组
+`define CACHE_BLOCK_WAY_NUMBER 2 // 路选 2 位 → 4 路
 `define CACHE_BLOCK_TAG_BYTE_WIDTH 25
 `endif // SOC_CONFIG_VH
 

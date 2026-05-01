@@ -136,6 +136,8 @@ module core_top (
         .load_lock_in(load_lock_out),
         .load_pending_in(load_pending),
         .mem_stall_req(register_EX_mem_stall_req),
+        .load_skip_stale(register_EX_load_skip_stale),
+        .dmem_valid(dmem_valid),
         .dmem_ready(dmem_ready),
         .imem_ready(imem_ready),
         .load_use_hazard(load_use_hazard),
@@ -186,6 +188,7 @@ module core_top (
     wire store_lock_out;
     wire load_pending;
     wire register_EX_mem_stall_req;
+    wire register_EX_load_skip_stale;
     wire mem_stall_req;
     assign mem_stall_req = register_EX_mem_stall_req;
     wire register_EX_mem_busy;
@@ -212,6 +215,7 @@ module core_top (
         .store_lock_out(store_lock_out),
         .load_pending_out(load_pending),
         .mem_stall_req(register_EX_mem_stall_req),
+        .load_skip_stale_out(register_EX_load_skip_stale),
         .mem_busy_out(register_EX_mem_busy)
     );
 

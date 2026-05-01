@@ -7,7 +7,6 @@
 // 若使用 Vivado BD + AXI SmartConnect，请使用 soc_top.v（AXI 主口版）。
 //
 `include "core_top.v"
-`include "../module/Cache/L1_Cache_INST.v"
 `include "../memory/inst_mem.v"
 `include "../memory/data_mem.v"
 
@@ -49,10 +48,6 @@ module soc_top_bram (
     wire        imem_req;
     wire [31:0] imem_rdata;
     wire        imem_ready;
-    wire [31:0] ic_mem_addr;
-    wire        ic_mem_req;
-    wire [31:0] ic_mem_rdata;
-    wire        ic_mem_ready;
 
     wire        dmem_wen;
     wire        dmem_ren;
@@ -104,25 +99,12 @@ module soc_top_bram (
         .dmem_ready        (dmem_ready)
     );
 
-    L1_Cache_INST u_icache (
-        .clk        (clk),
-        .rst_n      (rst_n),
-        .imem_addr  (imem_addr),
-        .imem_req   (imem_req),
-        .imem_rdata (imem_rdata),
-        .imem_ready (imem_ready),
-        .mem_addr   (ic_mem_addr),
-        .mem_req    (ic_mem_req),
-        .mem_rdata  (ic_mem_rdata),
-        .mem_ready  (ic_mem_ready)
-    );
-
     inst_mem u_inst_mem (
         .clk     (clk),
-        .req     (ic_mem_req),
-        .pc_addr (ic_mem_addr),
-        .inst    (ic_mem_rdata),
-        .ready   (ic_mem_ready)
+        .req     (imem_req),
+        .pc_addr (imem_addr),
+        .inst    (imem_rdata),
+        .ready   (imem_ready)
     );
 
     data_mem u_data_mem (
