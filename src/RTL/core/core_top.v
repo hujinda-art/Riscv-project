@@ -121,6 +121,7 @@ module core_top (
     assign stall_idex = stall_back;
     wire flush_ifid;
     wire flush_idex;
+
     hazard_ctrl u_hazard_ctrl (
         .stall(stall),
         .flush(flush),
@@ -281,7 +282,7 @@ module core_top (
     ID_EX_reg u_id_ex (
         .clk(clk),
         .rst_n(rst_n),
-        .stall(stall_back),
+        .stall(stall_idex),
         .flush(flush_idex),
         .id_pc_in(id_pc),
         .id_pc_plus4_in(id_pc_plus4),

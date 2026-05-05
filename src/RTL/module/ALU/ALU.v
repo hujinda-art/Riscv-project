@@ -36,36 +36,22 @@ module ALU(
     wire arith_cin;
     wire [31:0] arith_b;
     wire cout_ALU;
-    // RISC-V MUL：有符号相乘，取低 32 位
-    wire signed [63:0] mul_full;
-    wire [31:0]        mul_result;
-    assign mul_full   = $signed(a) * $signed(b);
-    assign mul_result = mul_full[31:0];
-
+    // ============================================================
+    // M extension (RV32M) — 暂时 stub 为 0，待多周期除法器完善后启用
+    // ============================================================
+    // MUL：有符号相乘，取低 32 位
+    wire [31:0] mul_result    = 32'b0;
     // MULH：有符号×有符号，取高 32 位
-    wire [31:0] mulh_result;
-    assign mulh_result = mul_full[63:32];
-
+    wire [31:0] mulh_result   = 32'b0;
     // MULHU：无符号×无符号，取高 32 位
-    wire [63:0] mulhu_full;
-    wire [31:0] mulhu_result;
-    assign mulhu_full   = $unsigned(a) * $unsigned(b);
-    assign mulhu_result = mulhu_full[63:32];
-
+    wire [31:0] mulhu_result  = 32'b0;
     // MULHSU：有符号×无符号，取高 32 位
-    wire signed [63:0] mulhsu_full;
-    wire [31:0]        mulhsu_result;
-    assign mulhsu_full   = $signed(a) * $signed({1'b0, b});
-    assign mulhsu_result = mulhsu_full[63:32];
-
+    wire [31:0] mulhsu_result = 32'b0;
     // DIV/DIVU/REM/REMU
-    wire [31:0] div_result, divu_result, rem_result, remu_result;
-    assign div_result  = ($signed(a) == 32'h8000_0000 && $signed(b) == -1) ? 32'h8000_0000 :
-                         (b != 0) ? $signed($signed(a) / $signed(b)) : 32'hFFFF_FFFF;
-    assign divu_result = (b != 0) ? a / b : 32'hFFFF_FFFF;
-    assign rem_result  = ($signed(a) == 32'h8000_0000 && $signed(b) == -1) ? 32'h0 :
-                         (b != 0) ? $signed($signed(a) % $signed(b)) : a;
-    assign remu_result = (b != 0) ? a % b : a;
+    wire [31:0] div_result    = 32'b0;
+    wire [31:0] divu_result   = 32'b0;
+    wire [31:0] rem_result    = 32'b0;
+    wire [31:0] remu_result   = 32'b0;
     
     assign arith_b = (op == 5'b00000) ? b : ~b;
     assign arith_cin = (op == 5'b00000) ? 1'b0 : 1'b1;
