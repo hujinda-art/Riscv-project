@@ -12,7 +12,7 @@
 # ---- 100MHz 系统时钟 (Basys3: W5) ----
 set_property PACKAGE_PIN W5   [get_ports clk]
 set_property IOSTANDARD LVCMOS33 [get_ports clk]
-create_clock -period 10.000 -name sys_clk [get_ports clk]
+create_clock -period 20.000 -name sys_clk [get_ports clk]
 
 # ---- 复位按钮 (Basys3: BTNU = V17, 按下为高电平) ----
 # BTNU 按下时输出高电平；FPGA 顶层 (fpga_top_bram.v) 内部通过
@@ -32,3 +32,7 @@ set_property PACKAGE_PIN U15  [get_ports {led[5]}]
 set_property PACKAGE_PIN U14  [get_ports {led[6]}]
 set_property PACKAGE_PIN V14  [get_ports {led[7]}]
 set_property IOSTANDARD LVCMOS33 [get_ports {led[*]}]
+
+# ---- USB-UART TX (Basys3: A18, FPGA→FTDI) ----
+set_property PACKAGE_PIN A18  [get_ports uart_tx]
+set_property IOSTANDARD LVCMOS33 [get_ports uart_tx]

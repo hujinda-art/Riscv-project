@@ -15,7 +15,8 @@
 module fpga_top_bram (
     input  wire        clk,
     input  wire        rst_n,
-    output wire [7:0]  led
+    output wire [7:0]  led,
+    output wire        uart_tx
 );
 
     wire [31:0] id_pc_w;
@@ -67,7 +68,8 @@ module fpga_top_bram (
         .ex_imm_out        (ex_imm_out_w),
         .ex_result_out     (ex_result_out_w),
         .ex_mem_addr_out   (ex_mem_addr_out_w),
-        .ex_mem_wdata_out  (ex_mem_wdata_out_w)
+        .ex_mem_wdata_out  (ex_mem_wdata_out_w),
+        .uart_tx           (uart_tx)
     );
 
     assign led = ex_result_out_w[7:0];

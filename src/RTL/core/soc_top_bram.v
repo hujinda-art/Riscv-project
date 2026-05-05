@@ -2,13 +2,13 @@
 `include "../include/soc_config.vh"
 `include "../include/soc_addr_map.vh"
 //
-// SoC 顶层（片内 BRAM 版）：CPU + L1 I$ + inst_mem + data_mem。
+// SoC 顶层（片内 BRAM 版）：CPU + L1 I$ + inst_mem + data_mem + UART。
 // 用于 RTL 仿真、fpga_top 等不经过 AXI BD 的场景。
-// 若使用 Vivado BD + AXI SmartConnect，请使用 soc_top.v（AXI 主口版）。
 //
 `include "core_top.v"
 `include "../memory/inst_mem.v"
 `include "../memory/data_mem.v"
+`include "../module/uart_tx.v"
 
 module soc_top_bram (
     input  wire        clk,
@@ -41,7 +41,9 @@ module soc_top_bram (
 
     output wire [31:0] ex_result_out,
     output wire [31:0] ex_mem_addr_out,
-    output wire [31:0] ex_mem_wdata_out
+    output wire [31:0] ex_mem_wdata_out,
+
+    output wire        uart_tx
 );
 
     wire [31:0] imem_addr;
@@ -107,16 +109,44 @@ module soc_top_bram (
         .ready   (imem_ready)
     );
 
+    // 外设地址译码：>= 0x1000_0000 为外设区
+    wire is_periph = (dmem_addr >= 32'h1000_0000);
+    wire is_uart   = (dmem_addr == `SOC_UART_BASE);
+
+    // date_mem 仅处理非外设区访问
+    wire        dmem_mem_valid = dmem_valid & ~is_periph;
+    wire [31:0] dmem_mem_rdata;
+    wire        dmem_mem_ready;
+
     data_mem u_data_mem (
         .clk      (clk),
-        .valid    (dmem_valid),
+        .valid    (dmem_mem_valid),
         .read_en  (dmem_ren),
-        .write_en (dmem_wen),
+        .write_en (dmem_wen && !is_periph),
         .size     (dmem_size),
         .address  (dmem_addr),
         .data_in  (dmem_wdata),
-        .data_out (dmem_rdata),
-        .ready    (dmem_ready)
+        .data_out (dmem_mem_rdata),
+        .ready    (dmem_mem_ready)
     );
+
+    // ---- 外设：UART TX (仅写) ----
+    wire uart_tx_start = dmem_valid & dmem_wen & is_uart;
+    wire uart_tx_busy;
+
+    uart_tx #(
+        .CLK_FREQ(50_000_000)
+    ) u_uart_tx (
+        .clk      (clk),
+        .rst_n    (rst_n),
+        .tx_data  (dmem_wdata[7:0]),
+        .tx_start (uart_tx_start),
+        .tx_busy  (uart_tx_busy),
+        .tx       (uart_tx)
+    );
+
+    // ---- 读数据 / ready 多路复用 ----
+    assign dmem_rdata = is_periph ? 32'b0 : dmem_mem_rdata;
+    assign dmem_ready = is_periph ? 1'b1  : dmem_mem_ready;
 
 endmodule
