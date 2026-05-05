@@ -70,6 +70,9 @@ module L1_Cache_DATA #(
     // miss/访存等待状态
     reg pending_read_miss;
     reg pending_write_through;
+    // 保存最近完成请求的地址，防止同一请求在 CPU 确认前被重复接受
+    reg [MEM_ADDR_WIDTH-1:0] completed_addr;
+    reg                       completed_addr_valid;
 
     // 保留当前正在处理的请求
     reg [MEM_ADDR_WIDTH-1:0] req_addr_reg;
@@ -184,6 +187,8 @@ module L1_Cache_DATA #(
             mem_wdata_reg <= {DATA_SIZE_WIDTH{1'b0}};
             pending_read_miss <= 1'b0;
             pending_write_through <= 1'b0;
+            completed_addr <= {MEM_ADDR_WIDTH{1'b0}};
+            completed_addr_valid <= 1'b0;
             req_addr_reg <= {MEM_ADDR_WIDTH{1'b0}};
             req_wdata_reg <= {DATA_SIZE_WIDTH{1'b0}};
             req_size_reg <= 2'b10;
@@ -193,6 +198,7 @@ module L1_Cache_DATA #(
             refill_way <= {WAY_NUM_WIDTH{1'b0}};
         end else begin
             dmem_ready_reg <= 1'b0;
+            completed_addr_valid <= 1'b0;
 
             req_group_index = req_addr_reg[BLOCK_WIDTH + GROUP_NUM_WIDTH - 1:BLOCK_WIDTH];
             req_word_offset = req_addr_reg[BLOCK_WIDTH-1:0];
@@ -250,13 +256,16 @@ module L1_Cache_DATA #(
                     mem_write_en_reg <= 1'b0;
                     pending_read_miss <= 1'b0;
                     pending_write_through <= 1'b0;
+                    completed_addr <= req_addr_reg;
+                    completed_addr_valid <= 1'b1;
                 end
             end else begin
                 mem_valid_reg <= 1'b0;
                 mem_read_en_reg <= 1'b0;
                 mem_write_en_reg <= 1'b0;
 
-                if (dmem_valid && dmem_ren) begin
+                if (!completed_addr_valid || dmem_addr != completed_addr) begin
+                    if (dmem_valid && dmem_ren) begin
                     if (hit_found) begin
                         dmem_rdata_reg <= cache_read_data(hit_word, dmem_size, dmem_addr[1:0]);
                         dmem_ready_reg <= 1'b1;
@@ -300,6 +309,7 @@ module L1_Cache_DATA #(
                     mem_addr_reg <= dmem_addr;
                     mem_wdata_reg <= dmem_wdata;
                 end
+                end // !just_completed
             end
         end
     end
