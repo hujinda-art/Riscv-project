@@ -17,7 +17,7 @@ IVERILOG_FLAGS = -g2012 \
 TB_DIR        = sim/feat_testbench
 
 # Known testbench names
-TB_NAMES      = tb_mem_loadstore_debug tb_jump_no_mem tb_fwd_hazard tb_mem_loadstore core_jump_tb special_features_tb
+TB_NAMES      = tb_jump_no_mem tb_fwd_hazard tb_mem_loadstore core_jump_tb special_features_tb
 
 .PHONY: all test clean $(TB_NAMES)
 all: $(addprefix sim_,$(TB_NAMES))

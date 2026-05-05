@@ -76,7 +76,6 @@ module tb_system_soc;
     integer pass_count = 0;
     integer fail_count = 0;
     integer i;
-    integer dbg_cycle;
     reg     mem_done_ok;
 
     // --- 与 C 程序 full_instr_test.c 中宏一致 ---
@@ -169,16 +168,6 @@ module tb_system_soc;
 
         repeat(5) @(posedge clk);
         rst_n = 1'b1;
-
-        // 调试：前若干拍打印流水线与 DMEM 完成字，便于看取指/跳转/访存
-        $display("TB: first 24 cycles trace after reset release");
-        for (dbg_cycle = 0; dbg_cycle < 24; dbg_cycle = dbg_cycle + 1) begin
-            @(posedge clk);
-            $display("TRACE[%0d] id_pc=%08h instr=%08h valid=%0d jump_if=%0d ex_jalr=%0d br=%0d dwen=%0d daddr=%08h dwdata=%08h done=%08h",
-                     dbg_cycle, id_pc, instr_out, instr_valid_out,
-                     dut.u_core.jump_if, dut.u_core.ex_jalr, dut.u_core.ex_branch_taken,
-                     dut.dmem_wen, dut.dmem_addr, dut.dmem_wdata, dmem_read_word(DONE_WORD));
-        end
 
         // 轮询 DONE 字；若程序未写 DONE 或卡在自陷前，会在 MAX_CYCLES 后超时
         i = 0;

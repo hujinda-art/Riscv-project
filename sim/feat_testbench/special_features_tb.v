@@ -70,26 +70,6 @@ module tb_special_features;
 
     always #5 clk = ~clk;
 
-    // DEBUG: monitor EX stage
-    always @(posedge clk) begin
-        if (rst_n) begin
-            $display("DEBUG EX @%0t: pc=%08h valid=%b rd=%0d result=%08h opcode=%07b load=%b store=%b lockL=%b",
-                     $time, dut.u_core.ex_pc_out, dut.u_core.ex_instr_valid_out,
-                     dut.u_core.rd_out, dut.u_core.ex_result_out, dut.u_core.opcode_out,
-                     dut.u_core.ex_is_load, dut.u_core.ex_is_store, dut.u_core.load_lock_out);
-        end
-    end
-
-    // DEBUG: monitor WB stage every cycle
-    always @(posedge clk) begin
-        if (rst_n) begin
-            $display("DEBUG WB @%0t: we=%b waddr=%0d wdata=%08h is_load=%b rd_ex=%0d result_ex=%08h rd_mem=%0d data_mem=%08h",
-                     $time, dut.u_core.wb_we_out, dut.u_core.wb_waddr_out, dut.u_core.wb_wdata_out,
-                     dut.u_core.wb_is_load_out, dut.u_core.wb_rd_out_ex, dut.u_core.wb_result_out,
-                     dut.u_core.wb_rd_out_mem, dut.u_core.wb_load_data_out);
-        end
-    end
-
     // --------------------------------------------------------
     // Pass / fail counters
     // --------------------------------------------------------
