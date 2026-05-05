@@ -21,6 +21,8 @@ module EX_stage (
     input  wire        ex_is_store,
     input  wire [31:0] rs1_data,
     input  wire [31:0] rs2_data,
+    input  wire [4:0]  forward_rd_pipe,
+    input  wire [31:0] forward_rd_data_pipe,
     input  wire [4:0]  forward_rd_in,
     input  wire [31:0] forward_rd_data_in,
     input  wire        forward_load_lock_in,
@@ -148,14 +150,18 @@ module EX_stage (
         end
     end
 
-// 数据前推 (Bug 18: load 锁存前递提升到最高优先级)
+// 数据前推优先级：pipe(1周期前直连) > load_lock > rd_reg(2周期前)
     assign rs1_data_final =
+        ((forward_rd_pipe != 5'b0) && (forward_rd_pipe == ex_rs1)) ?
+            forward_rd_data_pipe :
         ((forward_load_lock_in) && (forward_rd_reg_load_in != 5'b0) && (forward_rd_reg_load_in == ex_rs1)) ?
             forward_rd_data_reg_load_in :
         ((forward_rd_in != 5'b0) && (forward_rd_in == ex_rs1)) ?
             forward_rd_data_in :
             rs1_data;
     assign rs2_data_final =
+        ((forward_rd_pipe != 5'b0) && (forward_rd_pipe == ex_rs2)) ?
+            forward_rd_data_pipe :
         ((forward_load_lock_in) && (forward_rd_reg_load_in != 5'b0) && (forward_rd_reg_load_in == ex_rs2)) ?
             forward_rd_data_reg_load_in :
         ((forward_rd_in != 5'b0) && (forward_rd_in == ex_rs2)) ?

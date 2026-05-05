@@ -179,6 +179,19 @@ module core_top (
         .rdata2(rf_rdata2)
     );
 
+    // Pipeline register: breaks the RF→bypass→forwarding→ALU→result long path
+    reg [31:0] ex_result_pipe;
+    reg [4:0]  ex_rd_pipe;
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            ex_result_pipe <= 32'b0;
+            ex_rd_pipe    <= 5'b0;
+        end else if (!stall_idex && !(flush || branch_hazard_ex)) begin
+            ex_result_pipe <= ex_result_out;
+            ex_rd_pipe    <= rd_out;
+        end
+    end
+
     wire [4:0] forward_rd_out;
     wire [31:0] forward_rd_data_out;
     wire [4:0] forward_rd_out2;
@@ -203,7 +216,7 @@ module core_top (
         .load_success(dmem_ready & exmem_mem_read_en_out),
         .dmem_ready(dmem_ready),
         .rd_in(rd_out),
-        .rd_ex_result_in(ex_result_out),
+        .rd_ex_result_in(ex_result_pipe),
         .rd_mem_rdata_in(dmem_rdata),
         .reg_write_en(ex_reg_write_en),
         .rd_out(forward_rd_out),
@@ -340,6 +353,8 @@ module core_top (
         .ex_is_store(ex_is_store),
         .rs1_data(rf_rdata1),
         .rs2_data(rf_rdata2),
+        .forward_rd_pipe(ex_rd_pipe),
+        .forward_rd_data_pipe(ex_result_pipe),
         .forward_rd_in(forward_rd_out),
         .forward_rd_data_in(forward_rd_data_out),
         .forward_load_lock_in(load_lock_out),
