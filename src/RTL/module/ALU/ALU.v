@@ -41,6 +41,31 @@ module ALU(
     wire [31:0]        mul_result;
     assign mul_full   = $signed(a) * $signed(b);
     assign mul_result = mul_full[31:0];
+
+    // MULH：有符号×有符号，取高 32 位
+    wire [31:0] mulh_result;
+    assign mulh_result = mul_full[63:32];
+
+    // MULHU：无符号×无符号，取高 32 位
+    wire [63:0] mulhu_full;
+    wire [31:0] mulhu_result;
+    assign mulhu_full   = $unsigned(a) * $unsigned(b);
+    assign mulhu_result = mulhu_full[63:32];
+
+    // MULHSU：有符号×无符号，取高 32 位
+    wire signed [63:0] mulhsu_full;
+    wire [31:0]        mulhsu_result;
+    assign mulhsu_full   = $signed(a) * $signed({1'b0, b});
+    assign mulhsu_result = mulhsu_full[63:32];
+
+    // DIV/DIVU/REM/REMU
+    wire [31:0] div_result, divu_result, rem_result, remu_result;
+    assign div_result  = ($signed(a) == 32'h8000_0000 && $signed(b) == -1) ? 32'h8000_0000 :
+                         (b != 0) ? $signed($signed(a) / $signed(b)) : 32'hFFFF_FFFF;
+    assign divu_result = (b != 0) ? a / b : 32'hFFFF_FFFF;
+    assign rem_result  = ($signed(a) == 32'h8000_0000 && $signed(b) == -1) ? 32'h0 :
+                         (b != 0) ? $signed($signed(a) % $signed(b)) : a;
+    assign remu_result = (b != 0) ? a % b : a;
     
     assign arith_b = (op == 5'b00000) ? b : ~b;
     assign arith_cin = (op == 5'b00000) ? 1'b0 : 1'b1;
@@ -102,12 +127,37 @@ module ALU(
     end
     
     always @(*) begin
-        case (op[4:2])
-            3'b000: result = (op == 5'b00010) ? mul_result : arith_result_1;
-            3'b001: result = logic_result;
-            3'b010: result = shift_result;
-            3'b011: result = compare_result;
-            default: result = 32'b0;
+        case (op)
+            // Arithmetic
+            5'b00000: result = arith_result_1;    // add
+            5'b00001: result = arith_result_1;    // sub
+            // Multiply
+            5'b00010: result = mul_result;        // MUL
+            5'b00011: result = mulh_result;       // MULH
+            // Logic
+            5'b00100: result = logic_result;      // and
+            5'b00101: result = logic_result;      // or
+            5'b00110: result = logic_result;      // xor
+            5'b00111: result = mulhsu_result;     // MULHSU
+            // Shift
+            5'b01000: result = shift_result;      // sll
+            5'b01001: result = shift_result;      // srl
+            5'b01010: result = shift_result;      // sra
+            5'b01011: result = mulhu_result;      // MULHU
+            // Compare
+            5'b01100: result = compare_result;    // slt
+            5'b01101: result = compare_result;    // sltu
+            5'b01110: result = div_result;        // DIV
+            5'b01111: result = divu_result;       // DIVU
+            // Branch conditions (result unused, but set for DIV/REM reuse)
+            5'b10000: result = 32'b0;             // beq
+            5'b10001: result = rem_result;        // REM (reuses BNE slot)
+            5'b10010: result = 32'b0;             // bltu
+            5'b10011: result = 32'b0;             // bgeu
+            5'b10100: result = remu_result;       // REMU
+            5'b10110: result = 32'b0;             // blt
+            5'b10111: result = 32'b0;             // bge
+            default:  result = 32'b0;
         endcase
     end         
 endmodule

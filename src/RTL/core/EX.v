@@ -105,13 +105,28 @@ module EX_stage (
                             else
                                 alu_op = 5'b00000; // add
                         end
-                        3'b010:  alu_op = 5'b01100; // slt
-                        3'b011:  alu_op = 5'b01101; // sltu
-                        3'b001:  alu_op = 5'b01000; // sll
-                        3'b100:  alu_op = 5'b00110; // xor
-                        3'b101:  alu_op = ex_fun7[5] ? 5'b01010 : 5'b01001; // sra / srl
-                        3'b110:  alu_op = 5'b00101; // or
-                        3'b111:  alu_op = 5'b00100; // and
+                        3'b001: begin
+                            alu_op = (ex_fun7 == 7'b0000001) ? 5'b00011 : 5'b01000; // mulh / sll
+                        end
+                        3'b010: begin
+                            alu_op = (ex_fun7 == 7'b0000001) ? 5'b00111 : 5'b01100; // mulhsu / slt
+                        end
+                        3'b011: begin
+                            alu_op = (ex_fun7 == 7'b0000001) ? 5'b01011 : 5'b01101; // mulhu / sltu
+                        end
+                        3'b100: begin
+                            alu_op = (ex_fun7 == 7'b0000001) ? 5'b01110 : 5'b00110; // div / xor
+                        end
+                        3'b101: begin
+                            alu_op = (ex_fun7 == 7'b0000001) ? 5'b01111 :            // divu
+                                     ex_fun7[5] ? 5'b01010 : 5'b01001;                // sra / srl
+                        end
+                        3'b110: begin
+                            alu_op = (ex_fun7 == 7'b0000001) ? 5'b10001 : 5'b00101; // rem / or
+                        end
+                        3'b111: begin
+                            alu_op = (ex_fun7 == 7'b0000001) ? 5'b10100 : 5'b00100; // remu / and
+                        end
                         default: alu_op = 5'b00000;
                     endcase
                 end
