@@ -10,8 +10,8 @@
 `define SOC_RESET_VECTOR        32'h0000_0000
 
 // ---- 片内存储深度（字地址宽度 = log2(字数)；字节容量 = 2^(W+2)）----
-`define SOC_IMEM_ADDR_WIDTH     10
-`define SOC_DMEM_ADDR_WIDTH     10
+`define SOC_IMEM_ADDR_WIDTH     13
+`define SOC_DMEM_ADDR_WIDTH     13
 
 // ---- 访存宽度编码（与 LSU / data_mem 的 size 端口一致）----
 `define SOC_MEM_SIZE_WORD       2'b10

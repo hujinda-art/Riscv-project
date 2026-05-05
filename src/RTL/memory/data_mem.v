@@ -26,6 +26,18 @@ wire [1:0] position = address[1:0];
 (* ram_style = "block" *) reg [7:0] mem2 [0:((1 << ADDR_WIDTH) - 1)];
 (* ram_style = "block" *) reg [7:0] mem3 [0:((1 << ADDR_WIDTH) - 1)];
 
+// Byte-split initial values for .data section (from coremark.hex)
+integer dmi;
+initial begin
+    for (dmi = 0; dmi < (1 << ADDR_WIDTH); dmi = dmi + 1) begin
+        mem0[dmi] = 8'h00;
+        mem1[dmi] = 8'h00;
+        mem2[dmi] = 8'h00;
+        mem3[dmi] = 8'h00;
+    end
+    `include "data_mem_program.vh"
+end
+
 // Byte write-enable generation
 reg [3:0] byte_we;
 reg [31:0] wdata_aligned;

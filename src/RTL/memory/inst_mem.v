@@ -17,7 +17,7 @@ module inst_mem #(
     output wire        ready
 );
 
-(* ram_style = "distributed" *) reg [31:0] mem [0:((1<<ADDR_WIDTH)-1)];
+(* ram_style = "block" *) reg [31:0] mem [0:((1<<ADDR_WIDTH)-1)];
 
 wire [ADDR_WIDTH-1:0] word_addr = pc_addr[ADDR_WIDTH+1:2];
 
