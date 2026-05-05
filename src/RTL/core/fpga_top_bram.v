@@ -37,10 +37,13 @@ module fpga_top_bram (
     wire [31:0] ex_mem_addr_out_w;
     wire [31:0] ex_mem_wdata_out_w;
 
+    // Basys3 BTNU (V17) 按下为高电平；内部 rst_n 为低有效，需反相
+    wire sys_rst_n = ~rst_n;
+
     (* dont_touch = "yes" *)
     soc_top_bram u_soc_top (
         .clk               (clk),
-        .rst_n             (rst_n),
+        .rst_n             (sys_rst_n),
         .stall             (1'b0),
         .flush             (1'b0),
         .exception         (1'b0),

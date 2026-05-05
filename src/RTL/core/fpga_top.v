@@ -24,6 +24,9 @@ module fpga_top (
     wire [3:0] w_dmem_rid_in  = 4'b0;
     wire [3:0] w_dmem_bid_in  = 4'b0;
 
+    // Basys3 BTNU (V17) 按下为高电平；SoC/BD 的 rst_n 均为低有效，需反相
+    wire sys_rst_n = ~rst_n;
+
     wire [3:0] axi_arcache_d = 4'b0011;
     wire [3:0] axi_awcache_d = 4'b0011;
     wire [3:0] axi_arqos_d   = 4'b0;
@@ -99,7 +102,7 @@ module fpga_top (
     (* dont_touch = "yes" *)
     soc_top u_soc (
         .clk                 (clk),
-        .rst_n               (rst_n),
+        .rst_n               (sys_rst_n),
         .stall               (1'b0),
         .flush               (1'b0),
         .exception           (1'b0),
@@ -247,8 +250,8 @@ module fpga_top (
         .S01_AXI_0_wvalid  (w_dmem_wvalid),
 
         .clk_in1_0         (clk),
-        .ext_reset_in_0    (~rst_n),
-        .reset_0           (~rst_n)
+        .ext_reset_in_0    (sys_rst_n),
+        .reset_0           (sys_rst_n)
     );
 
     assign led = ex_result_out_w[7:0];
