@@ -1,18 +1,17 @@
 `timescale 1ns / 1ps
 //
-// FPGA 顶层：
-// - 默认：`soc_top` + Vivado BD 生成的 `soc_wrapper`（片内 BRAM 子系统）。
-// - BRAM 纯 RTL：工程 Verilog 中加 +define+FPGA_TOP_BRAM 或 `define FPGA_TOP_BRAM
+// fpga_top — AXI + Cache 路径
+// 使用 soc_top (含 L1_Cache_INST) + Vivado BD soc_wrapper
 //
-// AXI 模式：请将 soc_top.v 加入工程；将 src/bd/soc/hdl 下 soc_wrapper.v 及 generate 出的 soc.v 等一并加入。
-// 勿再 `include soc_top.v（若已单独加入源文件）——可去掉本文件中的 include，仅保留例化。
+// 上板前请将以下源文件加入 Vivado 工程：
+//   src/RTL/core/soc_top.v
+//   src/RTL/core/core_top.v 及所有子模块
+//   src/RTL/module/Cache/L1_Cache_INST.v, LFSR16_inst.v
+//   src/RTL/module/axi/axi_if_imem_master.v, axi_if_dmem_master.v
+//   src/bd/soc/hdl/soc_wrapper.v 及 generate 出的 soc.v
 //
 
-`ifdef FPGA_TOP_BRAM
-`include "soc_top_bram.v"
-`else
 `include "soc_top.v"
-`endif
 
 module fpga_top (
     input  wire        clk,
@@ -20,67 +19,11 @@ module fpga_top (
     output wire [7:0]  led
 );
 
-`ifdef FPGA_TOP_BRAM
-
-    wire [31:0] id_pc_w;
-    wire [31:0] id_pc_plus4_w;
-    wire [31:0] instr_out_w;
-    wire        instr_valid_out_w;
-    wire [6:0]  fun7_out_w;
-    wire [4:0]  rs2_out_w;
-    wire [4:0]  rs1_out_w;
-    wire [2:0]  fuc3_out_w;
-    wire [6:0]  opcode_out_w;
-    wire [4:0]  rd_out_w;
-    wire [31:0] ex_pc_out_w;
-    wire [31:0] ex_pc_plus4_out_w;
-    wire [31:0] ex_instr_out_w;
-    wire        ex_instr_valid_out_w;
-    wire [31:0] ex_imm_out_w;
-    wire [31:0] ex_result_out_w;
-    wire [31:0] ex_mem_addr_out_w;
-    wire [31:0] ex_mem_wdata_out_w;
-
-    (* dont_touch = "yes" *)
-    soc_top_bram u_soc_top (
-        .clk               (clk),
-        .rst_n             (rst_n),
-        .stall             (1'b0),
-        .flush             (1'b0),
-        .exception         (1'b0),
-        .pc_exception      (32'b0),
-        .interrupt         (1'b0),
-        .pc_interrupt      (32'b0),
-        .id_pc             (id_pc_w),
-        .id_pc_plus4       (id_pc_plus4_w),
-        .instr_out         (instr_out_w),
-        .instr_valid_out   (instr_valid_out_w),
-        .fun7_out          (fun7_out_w),
-        .rs2_out           (rs2_out_w),
-        .rs1_out           (rs1_out_w),
-        .fuc3_out          (fuc3_out_w),
-        .opcode_out        (opcode_out_w),
-        .rd_out            (rd_out_w),
-        .ex_pc_out         (ex_pc_out_w),
-        .ex_pc_plus4_out   (ex_pc_plus4_out_w),
-        .ex_instr_out      (ex_instr_out_w),
-        .ex_instr_valid_out(ex_instr_valid_out_w),
-        .ex_imm_out        (ex_imm_out_w),
-        .ex_result_out     (ex_result_out_w),
-        .ex_mem_addr_out   (ex_mem_addr_out_w),
-        .ex_mem_wdata_out  (ex_mem_wdata_out_w)
-    );
-
-    assign led = ex_result_out_w[7:0];
-
-`else
-
     // soc_wrapper 无 AXI ID 端口时，rid/bid 由常数驱动回 soc_top
     wire [3:0] w_imem_rid_in  = 4'b0;
     wire [3:0] w_dmem_rid_in  = 4'b0;
     wire [3:0] w_dmem_bid_in  = 4'b0;
 
-    // 与 Xilinx AXI 从机常见默认一致；若 BD 使用全功能 AXI，可按需改
     wire [3:0] axi_arcache_d = 4'b0011;
     wire [3:0] axi_awcache_d = 4'b0011;
     wire [3:0] axi_arqos_d   = 4'b0;
@@ -309,7 +252,5 @@ module fpga_top (
     );
 
     assign led = ex_result_out_w[7:0];
-
-`endif
 
 endmodule
