@@ -2,15 +2,15 @@
 `include "../include/soc_config.vh"
 `include "../include/soc_addr_map.vh"
 //
-// SoC 顶层（片内 BRAM 版）：CPU + L1 I$ + inst_mem + data_mem。
-// 用于 RTL 仿真、fpga_top 等不经过 AXI BD 的场景。
-// 若使用 Vivado BD + AXI SmartConnect，请使用 soc_top.v（AXI 主口版）。
+// SoC 顶层（片内 BRAM + L1 D$）：CPU + inst_mem + L1_Cache_DATA + data_mem。
+// 用于验证 data cache 集成后的系统级行为。
 //
 `include "core_top.v"
 `include "../memory/inst_mem.v"
+`include "../module/Cache/L1_Cache_DATA.v"
 `include "../memory/data_mem.v"
 
-module soc_top_bram (
+module soc_top_bram_dcache (
     input  wire        clk,
     input  wire        rst_n,
 
@@ -44,19 +44,31 @@ module soc_top_bram (
     output wire [31:0] ex_mem_wdata_out
 );
 
+    // ---- CPU 侧指令总线（直连 inst_mem）----
     wire [31:0] imem_addr;
     wire        imem_req;
     wire [31:0] imem_rdata;
     wire        imem_ready;
 
-    wire        dmem_wen;
-    wire        dmem_ren;
-    wire        dmem_valid;
-    wire [1:0]  dmem_size;
-    wire [31:0] dmem_addr;
-    wire [31:0] dmem_wdata;
-    wire [31:0] dmem_rdata;
-    wire        dmem_ready;
+    // ---- CPU 侧数据总线 ----
+    wire        cpu_dmem_wen;
+    wire        cpu_dmem_ren;
+    wire        cpu_dmem_valid;
+    wire [1:0]  cpu_dmem_size;
+    wire [31:0] cpu_dmem_addr;
+    wire [31:0] cpu_dmem_wdata;
+    wire [31:0] cpu_dmem_rdata;
+    wire        cpu_dmem_ready;
+
+    // ---- D$ 与 data_mem 之间 ----
+    wire        dc_mem_valid;
+    wire        dc_mem_read_en;
+    wire        dc_mem_write_en;
+    wire [1:0]  dc_mem_size;
+    wire [31:0] dc_mem_addr;
+    wire [31:0] dc_mem_wdata;
+    wire [31:0] dc_mem_rdata;
+    wire        dc_mem_ready;
 
     core_top u_core (
         .clk               (clk),
@@ -89,14 +101,14 @@ module soc_top_bram (
         .imem_req          (imem_req),
         .imem_rdata        (imem_rdata),
         .imem_ready        (imem_ready),
-        .dmem_wen          (dmem_wen),
-        .dmem_ren          (dmem_ren),
-        .dmem_valid        (dmem_valid),
-        .dmem_size         (dmem_size),
-        .dmem_addr         (dmem_addr),
-        .dmem_wdata        (dmem_wdata),
-        .dmem_rdata        (dmem_rdata),
-        .dmem_ready        (dmem_ready)
+        .dmem_wen          (cpu_dmem_wen),
+        .dmem_ren          (cpu_dmem_ren),
+        .dmem_valid        (cpu_dmem_valid),
+        .dmem_size         (cpu_dmem_size),
+        .dmem_addr         (cpu_dmem_addr),
+        .dmem_wdata        (cpu_dmem_wdata),
+        .dmem_rdata        (cpu_dmem_rdata),
+        .dmem_ready        (cpu_dmem_ready)
     );
 
     inst_mem u_inst_mem (
@@ -107,16 +119,37 @@ module soc_top_bram (
         .ready   (imem_ready)
     );
 
+    L1_Cache_DATA u_dcache (
+        .clk          (clk),
+        .rst_n        (rst_n),
+        .dmem_valid   (cpu_dmem_valid),
+        .dmem_ren     (cpu_dmem_ren),
+        .dmem_wen     (cpu_dmem_wen),
+        .dmem_size    (cpu_dmem_size),
+        .dmem_addr    (cpu_dmem_addr),
+        .dmem_wdata   (cpu_dmem_wdata),
+        .dmem_rdata   (cpu_dmem_rdata),
+        .dmem_ready   (cpu_dmem_ready),
+        .mem_valid    (dc_mem_valid),
+        .mem_read_en  (dc_mem_read_en),
+        .mem_write_en (dc_mem_write_en),
+        .mem_size     (dc_mem_size),
+        .mem_addr     (dc_mem_addr),
+        .mem_wdata    (dc_mem_wdata),
+        .mem_rdata    (dc_mem_rdata),
+        .mem_ready    (dc_mem_ready)
+    );
+
     data_mem u_data_mem (
         .clk      (clk),
-        .valid    (dmem_valid),
-        .read_en  (dmem_ren),
-        .write_en (dmem_wen),
-        .size     (dmem_size),
-        .address  (dmem_addr),
-        .data_in  (dmem_wdata),
-        .data_out (dmem_rdata),
-        .ready    (dmem_ready)
+        .valid    (dc_mem_valid),
+        .read_en  (dc_mem_read_en),
+        .write_en (dc_mem_write_en),
+        .size     (dc_mem_size),
+        .address  (dc_mem_addr),
+        .data_in  (dc_mem_wdata),
+        .data_out (dc_mem_rdata),
+        .ready    (dc_mem_ready)
     );
 
 endmodule

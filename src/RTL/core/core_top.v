@@ -117,6 +117,8 @@ module core_top (
     wire if_stall;
     wire stall_front;
     wire stall_back;
+    wire stall_idex;
+    assign stall_idex = stall_back;
     wire flush_ifid;
     wire flush_idex;
     hazard_ctrl u_hazard_ctrl (
@@ -126,14 +128,16 @@ module core_top (
         .ex_branch_taken(ex_branch_taken),
         .ex_jalr(ex_jalr),
         .ex_instr_valid_out(ex_instr_valid_out),
-        .ex_is_load(ex_is_load),
-        .rd_out(rd_out),
+        .rd_load_use(rd_reg_load_out),
         .id_rs1(id_rs1),
         .id_rs2(id_rs2),
         .id_use_rs1(id_use_rs1),
         .id_use_rs2(id_use_rs2),
-        .exmem_mem_read_en_out(exmem_mem_read_en_out),
-        .exmem_mem_write_en_out(exmem_mem_write_en_out),
+        .load_lock_in(load_lock_out),
+        .load_pending_in(load_pending),
+        .mem_stall_req(register_EX_mem_stall_req),
+        .load_skip_stale(register_EX_load_skip_stale),
+        .dmem_valid(dmem_valid),
         .dmem_ready(dmem_ready),
         .imem_ready(imem_ready),
         .load_use_hazard(load_use_hazard),
@@ -179,25 +183,40 @@ module core_top (
     wire [4:0] forward_rd_out2;
     wire [31:0] forward_rd_data_out2;
     wire [4:0] rd_reg_load_out;
-    wire [31:0] rd_data_reg_load_out;
+    wire [31:0] rd_data_load_out;
     wire load_lock_out;
+    wire store_lock_out;
+    wire load_pending;
+    wire register_EX_mem_stall_req;
+    wire register_EX_load_skip_stale;
+    wire mem_stall_req;
+    assign mem_stall_req = register_EX_mem_stall_req;
+    wire register_EX_mem_busy;
     register_EX u_register_ex (
         .clk(clk),
         .rst_n(rst_n),
         .stall(stall_front),
         .flush(flush | branch_hazard_ex),
         .load_enable(ex_is_load),
+        .store_enable(ex_is_store),
         .load_success(dmem_ready & exmem_mem_read_en_out),
+        .dmem_ready(dmem_ready),
         .rd_in(rd_out),
         .rd_ex_result_in(ex_result_out),
         .rd_mem_rdata_in(dmem_rdata),
-        .rd_out(forward_rd_out),    
+        .reg_write_en(ex_reg_write_en),
+        .rd_out(forward_rd_out),
         .rd_data_out(forward_rd_data_out),
         .rd_out2(forward_rd_out2),
         .rd_data_out2(forward_rd_data_out2),
-        .rd_reg_load_out(rd_reg_load_out),  
-        .rd_data_reg_load_out(rd_data_reg_load_out),
-        .load_lock_out(load_lock_out)
+        .rd_reg_load_out(rd_reg_load_out),
+        .rd_data_load_out(rd_data_load_out),
+        .load_lock_out(load_lock_out),
+        .store_lock_out(store_lock_out),
+        .load_pending_out(load_pending),
+        .mem_stall_req(register_EX_mem_stall_req),
+        .load_skip_stale_out(register_EX_load_skip_stale),
+        .mem_busy_out(register_EX_mem_busy)
     );
 
     IF_stage u_if (
@@ -263,7 +282,7 @@ module core_top (
         .clk(clk),
         .rst_n(rst_n),
         .stall(stall_back),
-        .flush(flush_idex_reg),
+        .flush(flush_idex),
         .id_pc_in(id_pc),
         .id_pc_plus4_in(id_pc_plus4),
         // JAL 气泡由 hazard_ctrl 的 flush_idex（含 branch_hazard_if & ~stall_back）统一注入，
@@ -322,11 +341,10 @@ module core_top (
         .rs2_data(rf_rdata2),
         .forward_rd_in(forward_rd_out),
         .forward_rd_data_in(forward_rd_data_out),
-        .forward_rd_in2(forward_rd_out2),
-        .forward_rd_data_in2(forward_rd_data_out2),
-        .forward_rd_reg_load_in(rd_reg_load_out),
-        .forward_rd_data_reg_load_in(rd_data_reg_load_out),
         .forward_load_lock_in(load_lock_out),
+        .forward_store_lock_in(store_lock_out),
+        .forward_rd_reg_load_in(rd_reg_load_out),
+        .forward_rd_data_reg_load_in(rd_data_load_out),
         .ex_result(ex_result_out),
         .mem_addr_out(ex_mem_addr_out),
         .mem_wdata(ex_mem_wdata_out),

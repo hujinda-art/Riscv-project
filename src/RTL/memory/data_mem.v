@@ -29,7 +29,8 @@ wire [1:0] position = address[1:0];
 // Byte write-enable generation
 reg [3:0] byte_we;
 reg [31:0] wdata_aligned;
-
+reg ready_reg;
+reg ready_reg_d1;
 always @(*) begin
     byte_we       = 4'b0000;
     wdata_aligned = 32'b0;
@@ -66,10 +67,12 @@ reg [1:0]  size_q;
 reg [1:0]  position_q;
 
 always @(posedge clk) begin
-    mem_data   <= {mem3[word_addr], mem2[word_addr], mem1[word_addr], mem0[word_addr]};
-    size_q     <= size;
-    position_q <= position;
-
+    if (valid && read_en) begin
+        mem_data   <= {mem3[word_addr], mem2[word_addr], mem1[word_addr], mem0[word_addr]};
+        size_q     <= size;
+        position_q <= position;
+    end
+    ready_reg <= valid? 1'b1 : 1'b0;
     if (write_en) begin
         if (byte_we[0]) mem0[word_addr] <= wdata_aligned[ 7: 0];
         if (byte_we[1]) mem1[word_addr] <= wdata_aligned[15: 8];
@@ -101,6 +104,6 @@ always @(*) begin
     endcase
 end
 
-assign ready = 1'b1;
+assign ready = ready_reg;
 
 endmodule

@@ -2,15 +2,15 @@
 `include "../include/soc_config.vh"
 `include "../include/soc_addr_map.vh"
 //
-// SoC 顶层（片内 BRAM 版）：CPU + L1 I$ + inst_mem + data_mem。
-// 用于 RTL 仿真、fpga_top 等不经过 AXI BD 的场景。
-// 若使用 Vivado BD + AXI SmartConnect，请使用 soc_top.v（AXI 主口版）。
+// SoC 顶层（片内 BRAM + L1 I$）：CPU + L1 I$ + inst_mem + data_mem。
+// 用于验证 inst cache 集成后的系统级行为。
 //
 `include "core_top.v"
+`include "../module/Cache/L1_Cache_INST.v"
 `include "../memory/inst_mem.v"
 `include "../memory/data_mem.v"
 
-module soc_top_bram (
+module soc_top_bram_icache (
     input  wire        clk,
     input  wire        rst_n,
 
@@ -44,11 +44,19 @@ module soc_top_bram (
     output wire [31:0] ex_mem_wdata_out
 );
 
-    wire [31:0] imem_addr;
-    wire        imem_req;
-    wire [31:0] imem_rdata;
-    wire        imem_ready;
+    // ---- CPU 侧指令总线 ----
+    wire [31:0] cpu_imem_addr;
+    wire        cpu_imem_req;
+    wire [31:0] cpu_imem_rdata;
+    wire        cpu_imem_ready;
 
+    // ---- I$ 与 inst_mem 之间 ----
+    wire [31:0] ic_mem_addr;
+    wire        ic_mem_req;
+    wire [31:0] ic_mem_rdata;
+    wire        ic_mem_ready;
+
+    // ---- 数据总线 ----
     wire        dmem_wen;
     wire        dmem_ren;
     wire        dmem_valid;
@@ -85,10 +93,10 @@ module soc_top_bram (
         .ex_result_out     (ex_result_out),
         .ex_mem_addr_out   (ex_mem_addr_out),
         .ex_mem_wdata_out  (ex_mem_wdata_out),
-        .imem_addr         (imem_addr),
-        .imem_req          (imem_req),
-        .imem_rdata        (imem_rdata),
-        .imem_ready        (imem_ready),
+        .imem_addr         (cpu_imem_addr),
+        .imem_req          (cpu_imem_req),
+        .imem_rdata        (cpu_imem_rdata),
+        .imem_ready        (cpu_imem_ready),
         .dmem_wen          (dmem_wen),
         .dmem_ren          (dmem_ren),
         .dmem_valid        (dmem_valid),
@@ -99,12 +107,25 @@ module soc_top_bram (
         .dmem_ready        (dmem_ready)
     );
 
+    L1_Cache_INST u_icache (
+        .clk        (clk),
+        .rst_n      (rst_n),
+        .imem_addr  (cpu_imem_addr),
+        .imem_req   (cpu_imem_req),
+        .imem_rdata (cpu_imem_rdata),
+        .imem_ready (cpu_imem_ready),
+        .mem_addr   (ic_mem_addr),
+        .mem_req    (ic_mem_req),
+        .mem_rdata  (ic_mem_rdata),
+        .mem_ready  (ic_mem_ready)
+    );
+
     inst_mem u_inst_mem (
         .clk     (clk),
-        .req     (imem_req),
-        .pc_addr (imem_addr),
-        .inst    (imem_rdata),
-        .ready   (imem_ready)
+        .req     (ic_mem_req),
+        .pc_addr (ic_mem_addr),
+        .inst    (ic_mem_rdata),
+        .ready   (ic_mem_ready)
     );
 
     data_mem u_data_mem (

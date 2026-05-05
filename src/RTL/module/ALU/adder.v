@@ -27,7 +27,6 @@ module adder_4bit(
     output c_out,
     output [3:0] s
     );
-    wire [3:0] c;
     wire [3:0] g,p;//carry-over to possess less time
     assign g = a & b;
     assign p = a ^ b;

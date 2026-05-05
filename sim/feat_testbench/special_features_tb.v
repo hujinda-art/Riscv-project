@@ -113,8 +113,12 @@ module tb_special_features;
             for (i = 0; i < 1024; i = i + 1)
                 dut.u_inst_mem.mem[i] = 32'h00000013;
             // Zero out data memory
-            for (i = 0; i < 1024; i = i + 1)
-                dut.u_data_mem.mem[i] = 32'h00000000;
+            for (i = 0; i < 1024; i = i + 1) begin
+                dut.u_data_mem.mem0[i] = 8'h00;
+                dut.u_data_mem.mem1[i] = 8'h00;
+                dut.u_data_mem.mem2[i] = 8'h00;
+                dut.u_data_mem.mem3[i] = 8'h00;
+            end
             // Zero out register file (x0 is hardwired 0; clear x1-x31 for isolation)
             for (i = 1; i < 32; i = i + 1)
                 dut.u_core.u_regfile.regs[i] = 32'h00000000;
@@ -212,7 +216,7 @@ module tb_special_features;
         dut.u_inst_mem.mem[4] = 32'h00110193; // addi x3, x2, 1
         dut.u_inst_mem.mem[5] = 32'h00018213; // addi x4, x3, 0
 
-        repeat(60) @(posedge clk);
+        repeat(20) @(posedge clk);
         check_eq(`REGS[2], 32'd100, "T3 lw        x2=100      ");
         check_eq(`REGS[3], 32'd101, "T3 load-use  x3=101      ");
         check_eq(`REGS[4], 32'd101, "T3 chain-fwd x4=101      ");
