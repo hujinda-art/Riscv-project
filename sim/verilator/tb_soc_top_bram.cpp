@@ -8,6 +8,7 @@
 //   +TEST=core_jump         → core_jump_tb (hardcoded JAL test)
 //   +TEST=jump_no_mem       → tb_jump_no_mem (6 sub-tests)
 //   +TEST=special_features  → special_features_tb (7 sub-tests)
+//   +TEST=sw_lw             → tb_sw_lw_raw (SW→LW RAW hazard through DMEM)
 //
 // Usage:
 //   ./Vsoc_top_bram +TEST=system +HEX=path/to/full_instr.hex +WAVE=out.vcd
@@ -417,7 +418,7 @@ int main(int argc, char **argv) {
 
     if (test_name.empty()) {
         fprintf(stderr, "Usage: %s +TEST=<test> [+HEX=<path>] [+WAVE=<path>]\n", argv[0]);
-        fprintf(stderr, "Tests: system, fwd, mem, core_jump, jump_no_mem, special_features\n");
+        fprintf(stderr, "Tests: system, fwd, mem, core_jump, jump_no_mem, special_features, sw_lw\n");
         return 1;
     }
 
@@ -460,6 +461,11 @@ int main(int argc, char **argv) {
         result = run_jump_no_mem(top, tfp);
     } else if (test_name == "special_features") {
         result = run_special_features(top, tfp);
+    } else if (test_name == "sw_lw") {
+        if (hex_path.empty()) hex_path = "../../scripts/sw/build/tb_sw_lw_raw.hex";
+        result = run_hex_test(top, tfp, hex_path.c_str(), "tb_sw_lw_raw",
+                              5000, {17}, {0x11223344}, {"SW→LW RAW"},
+                              false, 0, 0);
     } else {
         fprintf(stderr, "Unknown test: %s\n", test_name.c_str());
         result = 1;

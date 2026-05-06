@@ -1,8 +1,26 @@
+# --- 构建产物与工具缓存 ---
+scripts/sw/build/
+sim/waveform/
 push.log
 scripts/git/push_diagnose.ps1
+
+# --- 根目录残留（仿真编译产物 / 波形 / 图片） ---
+sim_*
+*.vcd
+png/
+
+# --- AI 工具导出与个人笔记 ---
+AGENTS.md
+kimi-export-*.md
+questions.md
+list.md
 question.md
 markdown/
-scripts/sw/build/
+
+# --- 生成式文档（非源码） ---
+设计文档.md
+验证报告.md
+CHANGE_REPORT.md
 
 # --- Vivado / 生成物与缓存（协作时勿提交；以 soc.bd + ip/*.xci 为源）---
 *.cache/

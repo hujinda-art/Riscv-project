@@ -67,13 +67,9 @@ module register_EX(
                     lstate               <= L_BUSY;
                     first_cycle_in_busy  <= 1'b1;
                 end
-                L_BUSY:   if (load_success && (!first_cycle_in_busy || !dmem_ready_d1)) begin
-                    lstate <= L_RELEASE;
-                end else if (load_success && first_cycle_in_busy && dmem_ready_d1) begin
-                    // stale ready：跳过，first_cycle_in_busy 清零后等待 data_mem 真实 ready
-                    first_cycle_in_busy <= 1'b0;
-                end else if (!first_cycle_in_busy && dmem_ready && !load_success) begin
-                    // 跳过 stale 后，data_mem 的真实 ready 到达（load 已流出 EX/MEM，load_success=0）
+                L_BUSY:   if (load_success) begin
+                    // 新 data_mem (read_busy) 保证 ready=0 在第一个读周期，
+                    // load_success 仅在数据真实就绪的第二周期为 1，无需 stale 检测。
                     lstate <= L_RELEASE;
                 end
                 L_RELEASE: begin
@@ -116,10 +112,6 @@ module register_EX(
             rd_data_load_saved <= NOP_DATA;
         end else begin
             if (load_success) begin
-                rd_data_reg_load  <= rd_mem_rdata_in;
-                rd_data_load_saved <= rd_mem_rdata_in;
-            end else if (lstate == L_BUSY && !first_cycle_in_busy && dmem_ready && !load_success) begin
-                // 跳过 stale 后捕获真实读数据
                 rd_data_reg_load  <= rd_mem_rdata_in;
                 rd_data_load_saved <= rd_mem_rdata_in;
             end else if (load_enable) begin
@@ -193,7 +185,7 @@ module register_EX(
     // 使得 hazard_ctrl 能在依赖指令仍在 ID 阶段时检测到 load-use 冒险。
     assign rd_reg_load_out = (lstate == L_IDLE && load_enable) ? rd_in : rd_reg_load;
     assign rd_data_load_out = (lstate == L_RELEASE) ? rd_data_load_saved :
-                              ((lstate == L_BUSY && dmem_ready && !first_cycle_in_busy) ? rd_mem_rdata_in :
+                              ((lstate == L_BUSY && dmem_ready) ? rd_mem_rdata_in :
                                rd_data_reg_load);
     assign load_lock_out = (lstate == L_BUSY) || (lstate == L_RELEASE);
     assign store_lock_out = slock;

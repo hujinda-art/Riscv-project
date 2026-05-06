@@ -36,15 +36,19 @@ V_FLAGS_BASE = --cc --exe --build --trace --public-flat-rw \
 HEX_SYS = $(PROJ_ROOT)/scripts/sw/build/full_instr.hex
 HEX_FWD = $(PROJ_ROOT)/scripts/sw/build/tb_fwd.hex
 HEX_MEM = $(PROJ_ROOT)/scripts/sw/build/tb_mem.hex
+HEX_SW_LW = $(PROJ_ROOT)/scripts/sw/build/tb_sw_lw_raw.hex
+HEX_SUM100 = $(PROJ_ROOT)/scripts/sw/build/sum1to100.hex
 
 # ============================================================================
 # Phony targets
 # ============================================================================
 .PHONY: all clean \
         test_sys test_fwd test_mem test_jump test_jump_nm test_feat \
+        test_sw_lw \
         test_mext test_dcache test_icache test_alu test_l1i
 
 all: test_sys test_fwd test_mem test_jump test_jump_nm test_feat \
+     test_sw_lw \
      test_mext test_dcache test_icache test_alu test_l1i
 	@echo ""
 	@echo "============================================"
@@ -86,6 +90,10 @@ test_jump_nm: build/Vsoc_top_bram
 test_feat: build/Vsoc_top_bram
 	@echo "=== special_features_tb ==="
 	./build/Vsoc_top_bram +TEST=special_features +WAVE=$(WAVEFORM_DIR)/special_features_tb.vcd || true
+
+test_sw_lw: build/Vsoc_top_bram
+	@echo "=== tb_sw_lw_raw ==="
+	./build/Vsoc_top_bram +TEST=sw_lw +HEX=$(HEX_SW_LW) +WAVE=$(WAVEFORM_DIR)/tb_sw_lw_raw.vcd || true
 
 # ============================================================================
 # soc_top_bram_dcache

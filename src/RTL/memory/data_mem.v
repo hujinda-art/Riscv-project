@@ -41,8 +41,6 @@ end
 // Byte write-enable generation
 reg [3:0] byte_we;
 reg [31:0] wdata_aligned;
-reg ready_reg;
-reg ready_reg_d1;
 always @(*) begin
     byte_we       = 4'b0000;
     wdata_aligned = 32'b0;
@@ -73,10 +71,14 @@ always @(*) begin
     endcase
 end
 
-// Synchronous read + write
+// Synchronous read + write.
+// BRAM 读延迟 1 周期 → 通过 read_busy 插入 1 拍停顿，
+// mem_data 无条件每周期捕获（停顿期间重新捕获保证数据覆写为稳定值）。
+// 写在本周期末完成，ready 立即为 1。
 reg [31:0] mem_data;
 reg [1:0]  size_q;
 reg [1:0]  position_q;
+reg read_busy;
 
 always @(posedge clk) begin
     if (valid && read_en) begin
@@ -84,7 +86,12 @@ always @(posedge clk) begin
         size_q     <= size;
         position_q <= position;
     end
-    ready_reg <= valid? 1'b1 : 1'b0;
+
+    if (valid && read_en)
+        read_busy <= 1'b1;
+    else
+        read_busy <= 1'b0;
+
     if (write_en) begin
         if (byte_we[0]) mem0[word_addr] <= wdata_aligned[ 7: 0];
         if (byte_we[1]) mem1[word_addr] <= wdata_aligned[15: 8];
@@ -116,6 +123,6 @@ always @(*) begin
     endcase
 end
 
-assign ready = ready_reg;
+assign ready = (valid && write_en) || read_busy;
 
 endmodule

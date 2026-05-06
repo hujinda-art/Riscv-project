@@ -13,7 +13,7 @@
 `include "../module/register_EX.v"
 `include "../module/register_MEM.v"
 `include "../module/register.v"
-`include "medium_reg.v"
+// 已移除 medium_reg.v：EX 结果管道寄存器已由 always 块直接实现（第 183-193 行）
 
 module core_top (
     input  wire        clk,
@@ -74,9 +74,6 @@ module core_top (
 
     wire        jump_if;
     wire [31:0] pc_jump_if;
-    wire        jump_ifid_unused;
-    wire [31:0] pc_jump_ifid_unused;
-    wire [31:0] instr_to_id;
 
     wire [6:0]  id_fun7;
     wire [4:0]  id_rs2, id_rs1, id_rd;
@@ -154,7 +151,7 @@ module core_top (
 
     // ID 阶段 JAL 决策：由 ID_stage 输出 is_jump 与 imm_j（经 imm_out）。
     localparam [6:0] OPCODE_JAL = 7'b1101111;
-    assign jump_if    = id_is_jump && instr_valid_out;
+    assign jump_if    = id_is_jump && instr_valid_out && ~branch_hazard_ex;
     assign pc_jump_if = id_pc + id_imm;
 
     // JAL 链接写回（写口2）：rd <- PC+4
@@ -203,8 +200,6 @@ module core_top (
     wire load_pending;
     wire register_EX_mem_stall_req;
     wire register_EX_load_skip_stale;
-    wire mem_stall_req;
-    assign mem_stall_req = register_EX_mem_stall_req;
     wire register_EX_mem_busy;
     register_EX u_register_ex (
         .clk(clk),
@@ -216,7 +211,7 @@ module core_top (
         .load_success(dmem_ready & exmem_mem_read_en_out),
         .dmem_ready(dmem_ready),
         .rd_in(rd_out),
-        .rd_ex_result_in(ex_result_pipe),
+        .rd_ex_result_in(ex_result_out),
         .rd_mem_rdata_in(dmem_rdata),
         .reg_write_en(ex_reg_write_en),
         .rd_out(forward_rd_out),

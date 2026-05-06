@@ -135,7 +135,7 @@ module soc_top_bram (
     wire uart_tx_busy;
 
     uart_tx #(
-        .CLK_FREQ(50_000_000)
+        .CLK_FREQ(100_000_000)
     ) u_uart_tx (
         .clk      (clk),
         .rst_n    (rst_n),
@@ -146,7 +146,7 @@ module soc_top_bram (
     );
 
     // ---- 读数据 / ready 多路复用 ----
-    assign dmem_rdata = is_periph ? 32'b0 : dmem_mem_rdata;
+    assign dmem_rdata = is_periph ? (is_uart ? {31'b0, uart_tx_busy} : 32'b0) : dmem_mem_rdata;
     assign dmem_ready = is_periph ? 1'b1  : dmem_mem_ready;
 
 endmodule
